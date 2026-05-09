@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resume Roaster · No. 001</title>
+<meta name="description" content="upload your pdf. pick your tone. get feedback that doesn't waste your time." />
+<script>
+  (function () {
+    const stored = localStorage.getItem("theme");
+    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", stored || preferred);
+  })();
+</script>
+<!-- SRI-pinned PDF.js bundle + worker via modulepreload (Phase 9 audit / M2). -->
+<!-- Browser fetches with integrity verification before the ES-module import below uses it. -->
+<link rel="modulepreload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs"
+      integrity="sha384-uwJM5C0hGZH5Ed/vHx4Ht1PUd8ABIDVIcLbHydZOdFL5eTUG8Jdr32xNVIyn0kYH"
+      crossorigin="anonymous" />
+<link rel="modulepreload"
+      href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs"
+      integrity="sha384-NVnhtZrGsIwDcnD5XVrDINOVzrQT0KzaOPpVmavjhwAaVWUtLcgQW7Cua6BKLsEA"
+      crossorigin="anonymous" />
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg: #F7F4EC;
+    --fg: #1a1814;
+    --muted: #8b8577;
+    --muted-faint: rgba(139,133,119,0.6);
+    --accent: #CC5500;
+    --accent-soft: rgba(204,85,0,0.12);
+    --line-faint: rgba(0,0,0,0.06);
+    --line-mid: rgba(0,0,0,0.16);
+    --line-strong: rgba(0,0,0,0.32);
+    --recess: rgba(0,0,0,0.014);
+    --recess-hover: rgba(0,0,0,0.024);
+    --quote-fg: #555;
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #14110d;
+    --fg: #F7F4EC;
+    --muted: #9a9285;
+    --muted-faint: rgba(154,146,133,0.55);
+    --accent: #FF7733;
+    --accent-soft: rgba(255,119,51,0.16);
+    --line-faint: rgba(255,255,255,0.07);
+    --line-mid: rgba(255,255,255,0.18);
+    --line-strong: rgba(255,255,255,0.4);
+    --recess: rgba(255,255,255,0.022);
+    --recess-hover: rgba(255,255,255,0.045);
+    --quote-fg: #c9c1b3;
+    color-scheme: dark;
+  }
+  body {
+    font-family: -apple-system, "Segoe UI", Inter, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    transition: background-color 240ms ease, color 240ms ease;
+  }
+  .serif { font-family: Georgia, serif; }
+  .muted { color: var(--muted); }
+  .muted-faint { color: var(--muted-faint); }
+  .subtle { border-color: var(--line-faint); }
+  .label {
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  hr.thin { border: 0; border-top: 1px solid var(--line-faint); margin: 0; }
+
+  .headline {
+    font-family: Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    font-size: clamp(36px, 6.5vw, 64px);
+  }
+  .headline em { color: var(--accent); font-style: italic; }
+  .lede {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 32em;
+  }
+  .link { color: var(--fg); border-bottom: 1px solid var(--line-mid); transition: color 180ms, border-color 180ms; }
+  .link:hover { color: var(--accent); border-color: var(--accent); }
+
+  .theme-btn {
+    position: fixed; top: 14px; right: 14px;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500;
+    color: var(--muted); background: var(--bg);
+    border: 1px solid var(--line-faint);
+    padding: 5px 11px; border-radius: 4px; cursor: pointer;
+    transition: color 200ms, border-color 200ms;
+    z-index: 10;
+  }
+  .theme-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .user-menu {
+    position: fixed; top: 14px; right: 80px;
+    z-index: 11;
+  }
+  .user-menu-trigger {
+    display: flex; gap: 8px; align-items: center;
+    font-family: inherit; font-size: 11.5px; font-style: italic;
+    color: var(--muted); background: var(--bg);
+    border: 1px solid var(--line-faint);
+    padding: 5px 11px; border-radius: 4px;
+    cursor: pointer;
+    transition: color 200ms, border-color 200ms;
+  }
+  .user-menu-trigger:hover { color: var(--accent); border-color: var(--accent); }
+  .user-menu-caret {
+    font-style: normal; font-size: 9px;
+    transition: transform 180ms ease;
+    display: inline-block; line-height: 1;
+  }
+  .user-menu[data-open="true"] .user-menu-caret { transform: rotate(180deg); }
+
+  .user-menu-panel {
+    position: absolute; top: calc(100% + 6px); right: 0;
+    background: var(--bg);
+    border: 1px solid var(--line-faint);
+    border-radius: 4px;
+    min-width: 120px;
+    overflow: hidden;
+  }
+  .user-menu-item {
+    display: block; width: 100%;
+    padding: 9px 14px;
+    font-family: inherit;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+    font-weight: 500;
+    background: transparent; border: 0;
+    text-align: left;
+    color: var(--muted); cursor: pointer;
+    transition: color 180ms, background-color 180ms;
+  }
+  .user-menu-item:hover { color: var(--accent); background: var(--recess-hover); }
+
+  .signin-hero {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding: 32px 0 80px;
+  }
+  .signin-display {
+    font-family: Georgia, serif; font-weight: 400;
+    font-size: clamp(40px, 6.5vw, 64px);
+    line-height: 1.02; letter-spacing: -0.025em;
+    margin: 0 0 22px 0; max-width: 16ch;
+  }
+  .signin-display em { color: var(--accent); font-style: italic; }
+  .signin-pitch {
+    font-family: Georgia, serif; font-style: italic;
+    color: var(--muted);
+    font-size: clamp(15px, 1.7vw, 17px); line-height: 1.55;
+    max-width: 34em; margin: 0 0 32px 0;
+  }
+  .signin-rule {
+    border: 0; border-top: 1px solid var(--line-faint);
+    width: 56px; margin: 0 auto 26px;
+  }
+  .signin-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: inherit;
+    font-size: 14px; font-weight: 500; letter-spacing: 0.01em;
+    padding: 13px 26px;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--line-mid); border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 200ms, color 200ms;
+    margin: 0 0 18px 0;
+  }
+  .signin-cta:hover { border-color: var(--accent); color: var(--accent); }
+  .signin-cta:disabled { opacity: 0.4; cursor: not-allowed; border-color: var(--line-faint); color: var(--muted); }
+  .signin-fineprint {
+    font-size: 12px; color: var(--muted); font-style: italic;
+    max-width: 32em; line-height: 1.55; margin: 0;
+  }
+
+  /* Quota bar — thin, editorial, sits above the input grid */
+  .quota-bar { margin: 0 0 28px 0; }
+  .quota-track {
+    height: 3px;
+    background: var(--line-faint);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .quota-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 400ms ease-out;
+  }
+  .quota-label {
+    font-size: 10.5px;
+    letter-spacing: 0.04em;
+    color: var(--muted-faint);
+    margin-top: 8px;
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  .quota-exceeded { text-align: center; padding: 64px 0 40px; }
+  .quota-exceeded p {
+    font-family: Georgia, serif; font-style: italic;
+    font-size: 17px; line-height: 1.55;
+    color: var(--muted);
+    max-width: 30em; margin: 0 auto;
+  }
+
+  .sample-btn {
+    border: 1px solid var(--line-faint);
+    padding: 5px 12px; border-radius: 4px;
+    background: transparent; color: var(--muted);
+    font-size: 11.5px; font-style: italic; cursor: pointer;
+    transition: border-color 180ms, color 180ms;
+  }
+  .sample-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .dropzone {
+    display: block;
+    border: 1px dashed var(--line-mid);
+    border-radius: 6px;
+    padding: 36px 20px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--recess);
+    transition: border-color 180ms, background-color 180ms;
+  }
+  .dropzone:hover, .dropzone.is-hover {
+    border-color: var(--line-strong);
+    background: var(--recess-hover);
+  }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; opacity: 0; }
+
+  .tone {
+    border: 1px solid var(--line-faint);
+    padding: 6px 18px; border-radius: 4px;
+    background: transparent; color: var(--fg);
+    font-size: 13px; cursor: pointer;
+    transition: border-color 180ms, color 180ms;
+  }
+  .tone:hover { border-color: var(--line-mid); }
+  .tone.active { border-color: var(--accent); color: var(--accent); }
+
+  .roast-btn {
+    font-family: Georgia, serif; font-style: italic;
+    font-size: 22px; padding: 12px 28px;
+    border: 1px solid var(--line-faint); border-radius: 5px;
+    background: transparent; color: var(--fg);
+    cursor: pointer;
+    transition: border-color 180ms, opacity 180ms;
+    display: inline-flex; align-items: center;
+  }
+  .roast-btn:hover:not(:disabled) { border-color: var(--line-strong); }
+  .roast-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .roast-btn .dot { color: var(--accent); }
+
+  .loading-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 11px;
+    animation: pulse 1.4s ease-in-out infinite;
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.35; transform: scale(0.85); }
+    50%      { opacity: 1;    transform: scale(1.15); }
+  }
+
+  .post-btn {
+    border: 1px solid var(--line-faint);
+    padding: 7px 16px; border-radius: 4px;
+    background: transparent; color: var(--fg);
+    font-size: 13px; cursor: pointer;
+    transition: border-color 180ms;
+  }
+  .post-btn:hover { border-color: var(--line-mid); }
+
+  /* the new side-by-side input grid */
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  @media (min-width: 640px) {
+    .input-grid { grid-template-columns: 1.15fr 1fr; gap: 32px; }
+  }
+  .col-pdf, .col-controls { display: flex; flex-direction: column; }
+  .col-controls .roast-btn { align-self: flex-start; }
+
+  /* output sub-sections */
+  .pull-quote {
+    border: none; padding: 0;
+    margin: 4px 0 28px 0;
+    font-family: Georgia, serif; font-style: italic;
+    font-size: clamp(20px, 3.2vw, 28px); line-height: 1.3;
+    color: var(--fg); letter-spacing: -0.005em;
+    max-width: 28em;
+  }
+  .pull-quote::before { content: "\201C"; color: var(--accent); margin-right: 4px; font-size: 1.1em; line-height: 0; }
+  .pull-quote::after { content: "\201D"; color: var(--accent); margin-left: 2px; font-size: 1.1em; line-height: 0; }
+
+  .analysis-strip {
+    margin: 0 0 28px 0; padding: 16px 0;
+    border-top: 1px solid var(--line-faint); border-bottom: 1px solid var(--line-faint);
+    display: flex; gap: 28px; align-items: center; flex-wrap: wrap;
+  }
+  .stat-line { font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin: 0; line-height: 1.7; flex: 1; min-width: 200px; }
+  .stat-line .sep { opacity: 0.45; margin: 0 6px; }
+
+  .radar-wrap { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .radar { display: block; animation: radar-in 600ms cubic-bezier(0.4, 0, 0.2, 1); transform-origin: center; }
+  @keyframes radar-in { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+  .radar-axis { stroke: var(--line-mid); stroke-width: 1; }
+  .radar-ring { fill: none; stroke: var(--line-faint); stroke-width: 1; }
+  .radar-poly { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+  .radar-dot { fill: var(--accent); }
+  .radar-label { font-size: 8.5px; letter-spacing: 0.12em; fill: var(--muted); font-weight: 500; }
+  .score-legend { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+  .score-legend .score-num { color: var(--accent); font-weight: 600; margin-left: 4px; }
+
+  /* meme */
+  .meme {
+    margin: 28px 0 0 0; padding: 18px 22px;
+    background: var(--recess); border: 1px solid var(--line-faint); border-left: 3px solid var(--accent);
+    border-radius: 0 4px 4px 0;
+  }
+  .meme-label {
+    font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+    font-size: 10.5px; letter-spacing: 0.16em; text-transform: lowercase;
+    color: var(--accent); margin: 0 0 10px 0; font-weight: 500;
+  }
+  .meme-body p {
+    font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+    font-size: 13px; line-height: 1.65; color: var(--fg);
+    margin: 0;
+  }
+  .meme-body em { font-style: italic; color: var(--muted); }
+
+  .disclaimer {
+    font-size: 12px; line-height: 1.65; color: var(--muted); font-style: italic;
+    margin: 28px 0 0 0; padding: 16px 0 0 0; border-top: 1px solid var(--line-faint);
+    max-width: 38em;
+  }
+
+  .prompt-reveal { margin-top: 18px; }
+  .prompt-reveal summary { cursor: pointer; font-size: 12px; color: var(--muted); font-style: italic; transition: color 180ms; list-style: none; }
+  .prompt-reveal summary::-webkit-details-marker { display: none; }
+  .prompt-reveal summary::before { content: "+ "; color: var(--accent); font-style: normal; margin-right: 2px; }
+  .prompt-reveal[open] summary::before { content: "− "; }
+  .prompt-reveal summary:hover { color: var(--accent); }
+  .prompt-text { font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px; line-height: 1.7; color: var(--muted); white-space: pre-wrap; padding: 14px; border-left: 2px solid var(--line-faint); margin: 10px 0 0 0; max-height: 320px; overflow-y: auto; background: var(--recess); }
+
+  /* prose */
+  .prose { color: var(--fg); }
+  .prose strong { font-weight: 600; }
+  .prose em { font-style: italic; }
+  .prose p { margin-bottom: 14px; line-height: 1.7; font-size: 15px; }
+  .prose ul { padding-left: 22px; margin-bottom: 14px; }
+  .prose li { margin-bottom: 6px; line-height: 1.65; font-size: 15px; }
+  .prose blockquote {
+    border-left: 2px solid var(--accent);
+    padding-left: 16px; margin-bottom: 14px;
+    color: var(--quote-fg); font-style: italic;
+  }
+  .prose h2 { font-family: Georgia, serif; font-weight: 600; font-size: 16px; margin: 24px 0 8px; letter-spacing: -0.005em; color: var(--fg); }
+  .prose h2:first-child { margin-top: 0; }
+  .prose h3 { font-family: Georgia, serif; font-weight: 600; font-size: 14.5px; margin: 18px 0 6px; }
+
+  .prose > h2:first-of-type + p::first-letter {
+    font-family: Georgia, serif;
+    font-size: 3.4em;
+    line-height: 0.85;
+    float: left;
+    margin: 4px 8px 0 -2px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .prose.streaming { white-space: pre-wrap; font-family: -apple-system, "Segoe UI", Inter, sans-serif; font-size: 15px; line-height: 1.65; }
+
+  /* masthead + colophon */
+  .masthead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; gap: 16px; }
+  .colophon { margin-top: 64px; padding-top: 14px; border-top: 1px solid var(--line-faint); }
+  .colophon-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 16px; }
+
+  .kbd-hint { font-size: 10.5px; letter-spacing: 0.06em; color: var(--muted-faint); font-style: italic; margin-top: 8px; }
+  .kbd-hint kbd {
+    font-family: ui-monospace, monospace; font-style: normal; font-size: 10px;
+    border: 1px solid var(--line-faint); border-radius: 3px; padding: 1px 5px; margin: 0 1px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 540px) {
+    .theme-btn { top: 10px; right: 10px; padding: 4px 9px; }
+    .user-menu { top: 38px; right: 10px; }
+    .user-menu-trigger { font-size: 10.5px; padding: 4px 9px; gap: 6px; }
+    .signin-hero { padding: 16px 0 56px; }
+    .signin-display { font-size: 38px; max-width: 14ch; }
+    .signin-pitch { font-size: 15px; }
+    .signin-cta { font-size: 13.5px; padding: 12px 22px; }
+    .quota-label { font-size: 9.5px; }
+    .analysis-strip { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .radar-wrap { margin: 0 auto; }
+    .prose > h2:first-of-type + p::first-letter { font-size: 2.8em; margin-top: 6px; }
+  }
+
+  @media print {
+    .theme-btn, .user-menu, .masthead-section, #signInUI, #appHeader, #quotaBar, #quotaExceeded, #inputs, .post-actions, .prompt-reveal, .colophon, .kbd-hint { display: none !important; }
+    body { background: white !important; color: black !important; }
+    .pull-quote::before, .pull-quote::after { color: #CC5500; }
+    .prose, .prose h2, .pull-quote, .stat-line, .meme-body p { color: black !important; }
+    .radar-poly { fill: rgba(204,85,0,0.12); stroke: #CC5500; }
+    .radar-dot { fill: #CC5500; }
+  }
+</style>
+</head>
+<body>
+<button id="themeBtn" class="theme-btn">dark</button>
+<div id="userMenu" class="user-menu" hidden data-open="false">
+  <button id="userMenuTrigger" class="user-menu-trigger" aria-expanded="false" aria-controls="userMenuPanel">
+    <span class="user-name"></span>
+    <span class="user-menu-caret" aria-hidden="true">▾</span>
+  </button>
+  <div id="userMenuPanel" class="user-menu-panel" hidden>
+    <button id="signOutBtn" class="user-menu-item">sign out</button>
+  </div>
+</div>
+
+<main class="max-w-2xl mx-auto px-6 py-12">
+  <header class="masthead-section mb-10">
+    <div class="masthead">
+      <p class="label">RESUME ROASTER</p>
+      <p class="label muted-faint">NO. 001 · MAY 2026</p>
+    </div>
+    <hr class="thin" />
+  </header>
+
+  <section id="signInUI" class="signin-hero" hidden>
+    <h1 class="signin-display">your resume,<br/><em>honestly</em>.</h1>
+    <p class="signin-pitch">drop a pdf. pick a tone — gentle, honest, or brutal. get a roast in the voice of a senior recruiter who has read ten thousand of them and is mildly tired.</p>
+    <hr class="signin-rule" />
+    <button id="signInBtn" class="signin-cta">continue with google</button>
+    <p class="signin-fineprint">one click. no signup form. we count requests, not contents — your resume is never stored.</p>
+  </section>
+
+  <section id="appHeader" hidden>
+    <h1 class="headline mt-7 mb-4">your resume, <em>honestly</em>.</h1>
+    <p class="lede">upload your pdf. pick your tone. get feedback that doesn't waste your time.</p>
+  </section>
+
+  <section id="quotaBar" class="quota-bar" hidden>
+    <div class="quota-track">
+      <div id="quotaFill" class="quota-fill" style="width: 0%;"></div>
+    </div>
+    <p class="quota-label">
+      <span id="quotaUsed">0</span> / <span id="quotaLimit">30,000</span> tokens used today · resets at <span id="quotaResetAt">—</span>
+    </p>
+  </section>
+
+  <section id="quotaExceeded" class="quota-exceeded" hidden>
+    <p>you've used today's roasts. anjali, vikram, and marcus are taking the night off. come back tomorrow.</p>
+  </section>
+
+  <section id="inputs" hidden>
+    <div class="input-grid">
+      <div class="col-pdf">
+        <p class="label mb-3">01 · YOUR PDF</p>
+        <label id="dropzone" class="dropzone">
+          <input id="file" type="file" accept="application/pdf,.pdf" class="sr-only" />
+          <p class="serif" style="font-size: 19px; margin-bottom: 4px;">drop your pdf here</p>
+          <p class="muted" style="font-size: 11.5px;">or tap to choose</p>
+        </label>
+        <p id="fileStatus" class="muted text-sm mt-2 italic" hidden></p>
+        <p class="label muted-faint mt-5 mb-2" style="font-size: 9.5px;">DON'T HAVE ONE?</p>
+        <div class="flex gap-2 flex-wrap">
+          <button class="sample-btn" data-sample="bingo">buzzword bingo</button>
+          <button class="sample-btn" data-sample="good">an actually-good one</button>
+          <button class="sample-btn" data-sample="first">first job</button>
+        </div>
+      </div>
+      <div class="col-controls">
+        <p class="label mb-3">02 · TONE</p>
+        <div id="toneRow" class="flex gap-2 mb-3 flex-wrap">
+          <button class="tone" data-tone="gentle">gentle</button>
+          <button class="tone active" data-tone="honest">honest</button>
+          <button class="tone" data-tone="brutal">brutal</button>
+        </div>
+        <p id="toneNote" class="muted italic mb-7" style="font-size: 13px;">vikram has hired and rejected thousands. he respects you enough to be direct.</p>
+        <p class="label mb-3">03 · ROAST</p>
+        <button id="roastBtn" class="roast-btn" disabled>roast me<span class="dot">.</span></button>
+        <p class="kbd-hint">or press <kbd>⌘</kbd> <kbd>↵</kbd></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="output" class="mb-16" hidden>
+    <p id="outputLabel" class="label mb-5"></p>
+    <div id="outputBody"></div>
+    <div class="post-actions flex gap-2 mt-8 pt-6 border-t subtle flex-wrap">
+      <button id="againBtn" class="post-btn">roast again</button>
+      <button id="shareBtn" class="post-btn">share</button>
+      <button id="printBtn" class="post-btn">save as pdf</button>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <div class="colophon-row">
+      <p class="label">COLOPHON</p>
+      <p class="label muted-faint">NO. 001</p>
+    </div>
+    <p class="muted" style="font-size: 12.5px; margin-bottom: 4px;">written by zaid khan · <a href="https://zkhan.me" class="link">zkhan.me</a></p>
+    <p class="muted-faint italic" style="font-size: 11.5px;">this app forgets your resume the moment you close the tab.</p>
+  </footer>
+</main>
+
+<script type="module">
+import * as pdfjs from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs';
+pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.mjs';
+
+const TONE_NOTES = {
+  gentle: "anjali will be kind. she still tells the truth.",
+  honest: "vikram has hired and rejected thousands. he respects you enough to be direct.",
+  brutal: "marcus is tired of mediocre resumes. survive him and you're better.",
+};
+const TONE_LABEL = { gentle: "— ANJALI", honest: "— VIKRAM", brutal: "— MARCUS" };
+const TONE_NAMES = { gentle: "anjali", honest: "vikram", brutal: "marcus" };
+const TONE_LOADING_WORDS = {
+  gentle: ["reading", "underlining gently", "composing", "finding the silver lining", "sipping chai", "choosing kind words", "softening edges"],
+  honest: ["sussing", "germinating", "coalescing", "whirring", "plotting", "sharpening", "squinting", "cooking", "diagnosing", "cross-referencing"],
+  brutal: ["sighing", "judging", "sharpening the red pen", "muttering", "questioning your life choices", "getting more coffee", "underlining in red", "cracking knuckles"],
+};
+
+const DISCLAIMER_TEXT = "this is a language model pretending to be a senior recruiter. it can be confidently wrong. nothing here is a hiring promise, a guarantee, or legal advice. take the bullets that sting; ignore the ones that don't. you're the editor.";
+
+const CLICHES = [
+  "team player", "results-driven", "results driven", "detail-oriented", "detail oriented",
+  "self-starter", "self starter", "go-getter", "thought leader", "synergy",
+  "best practices", "cutting-edge", "cutting edge", "state-of-the-art", "state of the art",
+  "passionate about", "thrive in", "fast-paced", "fast paced", "hit the ground running",
+  "wear many hats", "outside the box", "low-hanging fruit", "move the needle",
+  "ninja", "rockstar", "guru",
+];
+
+const SECTION_PATTERNS = {
+  summary: /\b(summary|profile|objective|about\s+me)\b/i,
+  experience: /\b(experience|employment|work\s+history|professional\s+experience)\b/i,
+  skills: /\b(skills|technical\s+skills|technologies|competencies)\b/i,
+  education: /\b(education|academic|degree)\b/i,
+  projects: /\b(projects|portfolio|notable\s+work)\b/i,
+  awards: /\b(awards|achievements|honors|certifications)\b/i,
+};
+const SECTION_MAX = Object.keys(SECTION_PATTERNS).length;
+
+const SAMPLES = {
+  bingo: `JOHN DOE\nSoftware Engineer · john.doe@example.com\n\nSUMMARY\nResults-driven, detail-oriented self-starter passionate about leveraging cutting-edge technologies to drive synergies and move the needle. Team player with a proven track record. Thought leader. Wear many hats. Hit the ground running.\n\nEXPERIENCE\nSenior Engineer at TechCorp (2020 - Present)\n- Worked on backend services\n- Improved performance significantly\n- Built features\n- Led a team\n- Used best practices and cutting-edge technologies\n- Stakeholder management\n\nEngineer at StartupCo (2018 - 2020)\n- Worked on the API\n- Implemented new features\n- Mentored juniors\n- Drove impact across multiple verticals\n\nSKILLS\nPython, JavaScript, Java, AWS, Docker, Kubernetes, CI/CD, Agile, Scrum, leadership, communication, problem-solving, fast-paced environments\n\nEDUCATION\nB.S. Computer Science\nState University, 2018`,
+  good: `JANE PATEL\nSenior Software Engineer · jane@example.com · github.com/janep\n\nEXPERIENCE\nSenior Software Engineer, Stripe (2022 - Present)\n- Cut payment-API p99 latency from 412ms to 87ms by replacing 3 N+1 queries with a single materialized view; saved ~$340k/year in db spend\n- Led 4-engineer team migrating 12M users from MySQL to Postgres with zero downtime; documented in eng blog (47k reads)\n- Shipped idempotency keys to 7 internal services, reducing duplicate-charge incidents by 89%\n\nSoftware Engineer, Airbnb (2019 - 2022)\n- Built fraud-detection pipeline processing 1.2B events/day; cut false positives 34% while raising true-positive rate 12%\n- Optimized search ranking; increased booking conversion 4.1% across 6 markets\n- Mentored 3 interns; 2 received return offers\n\nPROJECTS\npgmig (3.2k GitHub stars): Postgres migration tool used by 80+ companies\nOpen-source contributor: PostgreSQL planner (3 patches landed, 2024-2025)\n\nEDUCATION\nB.S. Computer Science, MIT (2019). GPA 3.9. Coursework: Distributed Systems, Compilers, Type Theory.\n\nSKILLS\nGo, Rust, Python, Postgres, Kafka, gRPC, distributed systems, profiling, code review`,
+  first: `ALEX KIM\najk@example.com · linkedin.com/in/alex\n\nEDUCATION\nB.E. Computer Engineering, BITS Pilani (Expected 2026)\nGPA 8.1/10\nRelevant courses: Operating Systems, Algorithms, Databases, Machine Learning\n\nINTERNSHIPS\nSoftware Engineering Intern, Razorpay (Summer 2025)\n- Worked on the payments dashboard\n- Implemented two new features\n- Used React and Node.js\n- Got good feedback from manager\n\nSoftware Engineering Intern, Hashnode (Winter 2024)\n- Worked on the blog editor\n- Fixed bugs\n- Used Next.js and TypeScript\n\nPROJECTS\n- ChatBot using Python and OpenAI API — got 50 users\n- Todo App using React\n- Personal portfolio website\n\nSKILLS\nPython, JavaScript, React, Node.js, MongoDB, Git, Docker\n\nACHIEVEMENTS\n- Won 2nd place in college hackathon\n- Published a blog post on dev.to (1.2k views)`,
+};
+const SAMPLE_LABELS = {
+  bingo: "buzzword bingo",
+  good: "an actually-good one",
+  first: "first job",
+};
+
+const $ = (id) => document.getElementById(id);
+const dropzone = $("dropzone");
+const fileInput = $("file"), fileStatus = $("fileStatus"), roastBtn = $("roastBtn");
+const toneRow = $("toneRow"), toneNote = $("toneNote");
+const output = $("output"), outputLabel = $("outputLabel"), outputBody = $("outputBody");
+const againBtn = $("againBtn"), shareBtn = $("shareBtn"), printBtn = $("printBtn");
+const themeBtn = $("themeBtn");
+
+let resumeText = "", tone = "honest";
+let originalRoastBtnHTML = roastBtn.innerHTML;
+let loadingInterval = null;
+let clerk = null;
+
+// Theme.
+function syncThemeBtnLabel() {
+  const t = document.documentElement.getAttribute("data-theme") || "light";
+  themeBtn.textContent = t === "dark" ? "light" : "dark";
+}
+syncThemeBtnLabel();
+themeBtn.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  const next = current === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("theme", next);
+  syncThemeBtnLabel();
+});
+
+// Sample resumes.
+document.querySelectorAll(".sample-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const key = btn.dataset.sample;
+    resumeText = SAMPLES[key];
+    const words = resumeText.split(/\s+/).filter(Boolean).length;
+    setStatus(`sample: ${SAMPLE_LABELS[key]} — ready to roast (${words.toLocaleString()} words)`);
+    updateRoastBtn();
+  });
+});
+
+// File upload. Input is a child of the label — native label-click opens the picker on every browser including iOS.
+dropzone.addEventListener("dragover", (e) => { e.preventDefault(); dropzone.classList.add("is-hover"); });
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("is-hover"));
+dropzone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  dropzone.classList.remove("is-hover");
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener("change", () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+async function handleFile(file) {
+  // Phase 5 — Guard 1 (filesize), client-side UX layer. Server still re-checks
+  // text length inside /api/roast so this is purely about saving an upload round-trip.
+  if (publicConfig.guards.filesize === "on" && file.size > 5 * 1024 * 1024) {
+    setStatus("file too large — max 5mb. try trimming or saving as a smaller pdf?");
+    resumeText = ""; updateRoastBtn(); return;
+  }
+  if (!file.name.toLowerCase().endsWith(".pdf") && file.type !== "application/pdf") {
+    setStatus("hmm, that doesn't look like a pdf — try again?");
+    resumeText = ""; updateRoastBtn(); return;
+  }
+  setStatus(`${file.name} — extracting text...`);
+  try {
+    resumeText = await extractText(file);
+    if (resumeText.length < 50) {
+      setStatus("this pdf doesn't seem to have selectable text — is it a scan?");
+      resumeText = ""; updateRoastBtn(); return;
+    }
+    const words = resumeText.split(/\s+/).filter(Boolean).length;
+    setStatus(`${file.name} — ready to roast (${words.toLocaleString()} words)`);
+  } catch (err) {
+    setStatus(`couldn't read this pdf — ${err?.message || "unknown error"}`);
+    resumeText = "";
+  }
+  updateRoastBtn();
+}
+
+async function extractText(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjs.getDocument({ data: buf }).promise;
+  const pages = [];
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    pages.push(content.items.map((it) => it.str).join(" "));
+  }
+  return pages.join("\n\n").trim();
+}
+
+function setStatus(msg) { fileStatus.textContent = msg; fileStatus.hidden = false; }
+function updateRoastBtn() { if (!loadingInterval) roastBtn.disabled = !resumeText || !tone; }
+
+// Tone selection.
+toneRow.addEventListener("click", (e) => {
+  const btn = e.target.closest(".tone");
+  if (!btn) return;
+  tone = btn.dataset.tone;
+  toneRow.querySelectorAll(".tone").forEach((b) => b.classList.toggle("active", b === btn));
+  toneNote.textContent = TONE_NOTES[tone];
+});
+
+// Loading state — rotating editorial verbs + a small pulsing dot.
+function startLoadingState() {
+  const words = TONE_LOADING_WORDS[tone];
+  const name = TONE_NAMES[tone];
+  let i = 0;
+  const update = () => { roastBtn.innerHTML = `<span class="loading-dot"></span>${name} is ${words[i]}...`; };
+  update();
+  loadingInterval = setInterval(() => { i = (i + 1) % words.length; update(); }, 1100);
+}
+function stopLoadingState() {
+  if (loadingInterval) { clearInterval(loadingInterval); loadingInterval = null; }
+  roastBtn.innerHTML = originalRoastBtnHTML;
+}
+
+// Cmd / Ctrl + Enter shortcut.
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && !roastBtn.disabled) {
+    e.preventDefault();
+    roastBtn.click();
+  }
+});
+
+// Roast click — kicks off streaming.
+roastBtn.addEventListener("click", async () => {
+  roastBtn.disabled = true;
+  startLoadingState();
+  output.hidden = true;
+  outputBody.replaceChildren();
+
+  try {
+    if (!clerk?.session) {
+      showError("your session expired. sign in again to continue.");
+      return;
+    }
+    const token = await clerk.session.getToken();
+    const res = await fetch("/api/roast", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ resumeText, tone }),
+    });
+
+    const ct = res.headers.get("content-type") || "";
+    if (ct.includes("application/json")) {
+      const json = await res.json();
+      if (json.code === "QUOTA_EXCEEDED" && json.data) {
+        quotaState = {
+          used: json.data.used,
+          limit: json.data.limit,
+          percentUsed: 100,
+          resetsAt: json.data.resetsAt,
+        };
+        renderQuota();
+        return;
+      }
+      showError(json.error || "something went sideways. try again?");
+      return;
+    }
+
+    const cacheReason = res.headers.get("x-served-from-cache") || "";
+    await renderStreaming(res.body, resumeText, tone, cacheReason);
+    if (!cacheReason) fetchUsage();
+  } catch {
+    showError("hmm, the network grumbled. try again?");
+  } finally {
+    stopLoadingState();
+    roastBtn.disabled = !resumeText || !tone;
+  }
+});
+
+function showError(msg) {
+  outputLabel.textContent = "";
+  outputBody.replaceChildren();
+  const p = document.createElement("p");
+  p.className = "muted italic";
+  p.textContent = msg;
+  outputBody.appendChild(p);
+  output.hidden = false;
+}
+
+// Streaming renderer — meta arrives first, pull-quote + analysis snap in instantly,
+// then prose streams as plaintext below. At end-of-stream, prose is replaced with markdown,
+// and meme + prompt-reveal + disclaimer render below.
+async function renderStreaming(body, resume, currentTone, cacheReason) {
+  outputLabel.textContent = TONE_LABEL[currentTone];
+  outputBody.replaceChildren();
+  output.hidden = false;
+
+  if (cacheReason) {
+    const note = document.createElement("p");
+    note.className = "muted italic";
+    note.style.fontSize = "12.5px";
+    note.style.margin = "0 0 18px";
+    const reasonText = ({
+      query: "served from cache — `?demo` query param",
+      admin: "served from cache — demo mode is on",
+      circuit_open: "served from cache — openai is having a moment",
+    })[cacheReason] || "served from cache";
+    note.textContent = reasonText;
+    outputBody.appendChild(note);
+  }
+
+  const metaSlot = document.createElement("div");
+  outputBody.appendChild(metaSlot);
+
+  const proseEl = document.createElement("div");
+  proseEl.className = "prose streaming";
+  outputBody.appendChild(proseEl);
+
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let raw = "";
+  let metaParsed = false;
+  let bodyStart = 0;
+  let parsedMeta = null;
+
+  function maybeRenderMeta() {
+    if (metaParsed) return;
+    const m = raw.match(/^\s*<meta>([\s\S]*?)<\/meta>\s*\n?/);
+    if (!m) return;
+    try {
+      parsedMeta = JSON.parse(m[1].trim());
+    } catch {
+      return;
+    }
+    renderPullQuote(parsedMeta, metaSlot);
+    const stats = computeStats(resume);
+    renderAnalysisStrip(stats, parsedMeta, metaSlot);
+    bodyStart = m[0].length;
+    metaParsed = true;
+  }
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    raw += decoder.decode(value, { stream: true });
+
+    if (!metaParsed) {
+      maybeRenderMeta();
+      if (!metaParsed && raw.length > 1500) {
+        const stats = computeStats(resume);
+        renderAnalysisStrip(stats, null, metaSlot);
+        bodyStart = 0;
+        metaParsed = true;
+      }
+    }
+
+    if (metaParsed) proseEl.textContent = raw.slice(bodyStart);
+  }
+
+  // Replace plain text with markdown render.
+  const finalProse = document.createElement("div");
+  finalProse.className = "prose";
+  renderMd(raw.slice(bodyStart), finalProse);
+  proseEl.replaceWith(finalProse);
+
+  renderMeme(parsedMeta, outputBody);
+  renderPromptReveal(currentTone, outputBody);
+  renderDisclaimer(outputBody);
+}
+
+// Client-side factual stats.
+function computeStats(text) {
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const lines = text.split("\n");
+  const bullets = lines.filter((l) => /^\s*[-*•●○■]/.test(l) || /^\s*\d+[.)]/.test(l));
+  const quantBullets = bullets.filter((l) => /\d/.test(l));
+  const detected = Object.entries(SECTION_PATTERNS).filter(([, re]) => re.test(text)).map(([k]) => k);
+  let clicheCount = 0;
+  for (const c of CLICHES) {
+    const re = new RegExp("\\b" + c.replace(/[-]/g, "[- ]") + "\\b", "gi");
+    const matches = text.match(re);
+    if (matches) clicheCount += matches.length;
+  }
+  return {
+    words,
+    bullets: bullets.length,
+    quantBullets: quantBullets.length,
+    sectionCount: detected.length,
+    sectionMax: SECTION_MAX,
+    clicheCount,
+  };
+}
+
+function clampScore(n) {
+  const v = Number(n);
+  if (!Number.isFinite(v)) return null;
+  return Math.max(1, Math.min(10, Math.round(v)));
+}
+
+const RADAR_DIMS = [
+  { key: "specificity", label: "SPECIFIC" },
+  { key: "quantification", label: "NUMBERS" },
+  { key: "clarity", label: "CLARITY" },
+  { key: "cliche_free", label: "FRESH" },
+];
+
+function renderRadar(meta) {
+  const cx = 100, cy = 100, maxR = 56;
+  const NS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 200 200");
+  svg.setAttribute("class", "radar");
+  svg.setAttribute("width", "180");
+  svg.setAttribute("height", "180");
+
+  // Outer + half rings.
+  for (const r of [maxR, maxR * 0.5]) {
+    const points = [];
+    for (let i = 0; i < 4; i++) {
+      const angle = (Math.PI * 2 / 4) * i - Math.PI / 2;
+      points.push(`${cx + Math.cos(angle) * r},${cy + Math.sin(angle) * r}`);
+    }
+    const ring = document.createElementNS(NS, "polygon");
+    ring.setAttribute("points", points.join(" "));
+    ring.setAttribute("class", "radar-ring");
+    svg.appendChild(ring);
+  }
+
+  // Axis lines.
+  for (let i = 0; i < 4; i++) {
+    const angle = (Math.PI * 2 / 4) * i - Math.PI / 2;
+    const line = document.createElementNS(NS, "line");
+    line.setAttribute("x1", cx);
+    line.setAttribute("y1", cy);
+    line.setAttribute("x2", cx + Math.cos(angle) * maxR);
+    line.setAttribute("y2", cy + Math.sin(angle) * maxR);
+    line.setAttribute("class", "radar-axis");
+    svg.appendChild(line);
+  }
+
+  // Score polygon + dots.
+  const scorePoints = [];
+  RADAR_DIMS.forEach((d, i) => {
+    const score = clampScore(meta[d.key]) || 0;
+    const r = (score / 10) * maxR;
+    const angle = (Math.PI * 2 / 4) * i - Math.PI / 2;
+    scorePoints.push(`${cx + Math.cos(angle) * r},${cy + Math.sin(angle) * r}`);
+  });
+  const poly = document.createElementNS(NS, "polygon");
+  poly.setAttribute("points", scorePoints.join(" "));
+  poly.setAttribute("class", "radar-poly");
+  svg.appendChild(poly);
+
+  RADAR_DIMS.forEach((d, i) => {
+    const score = clampScore(meta[d.key]) || 0;
+    const r = (score / 10) * maxR;
+    const angle = (Math.PI * 2 / 4) * i - Math.PI / 2;
+    const dot = document.createElementNS(NS, "circle");
+    dot.setAttribute("cx", cx + Math.cos(angle) * r);
+    dot.setAttribute("cy", cy + Math.sin(angle) * r);
+    dot.setAttribute("r", "2.5");
+    dot.setAttribute("class", "radar-dot");
+    svg.appendChild(dot);
+  });
+
+  // Labels at axis ends — short names, well-clear of the polygon. No score numbers inside.
+  RADAR_DIMS.forEach((d, i) => {
+    const angle = (Math.PI * 2 / 4) * i - Math.PI / 2;
+    const lx = cx + Math.cos(angle) * (maxR + 22);
+    const ly = cy + Math.sin(angle) * (maxR + 22);
+    const text = document.createElementNS(NS, "text");
+    text.setAttribute("x", lx);
+    text.setAttribute("y", ly);
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    text.setAttribute("class", "radar-label");
+    text.textContent = d.label;
+    svg.appendChild(text);
+  });
+
+  return svg;
+}
+
+function renderScoreLegend(meta) {
+  const wrap = document.createElement("div");
+  wrap.className = "score-legend";
+  RADAR_DIMS.forEach((d) => {
+    const score = clampScore(meta[d.key]);
+    if (score === null) return;
+    const row = document.createElement("span");
+    row.appendChild(document.createTextNode(d.label));
+    const num = document.createElement("span");
+    num.className = "score-num";
+    num.textContent = score;
+    row.appendChild(num);
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+
+function renderAnalysisStrip(stats, meta, parent) {
+  const strip = document.createElement("div");
+  strip.className = "analysis-strip";
+
+  const factual = document.createElement("p");
+  factual.className = "stat-line";
+  const parts = [
+    `${stats.words.toLocaleString()} words`,
+    `${stats.quantBullets} of ${stats.bullets || 0} bullets quantified`,
+    `${stats.sectionCount}/${stats.sectionMax} sections`,
+    `${stats.clicheCount} cliché${stats.clicheCount === 1 ? "" : "s"}`,
+  ];
+  parts.forEach((p, i) => {
+    if (i > 0) {
+      const sep = document.createElement("span");
+      sep.className = "sep"; sep.textContent = "·";
+      factual.appendChild(sep);
+    }
+    factual.appendChild(document.createTextNode(p));
+  });
+  strip.appendChild(factual);
+
+  if (meta) {
+    const radarWrap = document.createElement("div");
+    radarWrap.className = "radar-wrap";
+    radarWrap.appendChild(renderRadar(meta));
+    radarWrap.appendChild(renderScoreLegend(meta));
+    strip.appendChild(radarWrap);
+  }
+
+  parent.appendChild(strip);
+}
+
+function renderPullQuote(meta, parent) {
+  if (!meta || typeof meta.pull_quote !== "string" || !meta.pull_quote.trim()) return;
+  const q = document.createElement("blockquote");
+  q.className = "pull-quote";
+  q.textContent = meta.pull_quote.trim();
+  parent.appendChild(q);
+}
+
+function renderMeme(meta, parent) {
+  if (!meta || typeof meta.meme_caption !== "string" || !meta.meme_caption.trim()) return;
+  const wrap = document.createElement("div");
+  wrap.className = "meme";
+  const lbl = document.createElement("p");
+  lbl.className = "meme-label";
+  lbl.textContent = "// in meme form";
+  wrap.appendChild(lbl);
+  const body = document.createElement("div");
+  body.className = "meme-body";
+  // Render line by line, parsing inline *italic* and **bold**.
+  for (const line of meta.meme_caption.trim().split("\n")) {
+    const p = document.createElement("p");
+    renderInline(line, p);
+    body.appendChild(p);
+  }
+  wrap.appendChild(body);
+  parent.appendChild(wrap);
+}
+
+function renderDisclaimer(parent) {
+  const p = document.createElement("p");
+  p.className = "disclaimer";
+  p.textContent = DISCLAIMER_TEXT;
+  parent.appendChild(p);
+}
+
+function renderPromptReveal(currentTone, parent) {
+  const reveal = document.createElement("details");
+  reveal.className = "prompt-reveal";
+
+  const summary = document.createElement("summary");
+  summary.textContent = `see what we asked ${TONE_NAMES[currentTone]}`;
+  reveal.appendChild(summary);
+
+  const pre = document.createElement("pre");
+  pre.className = "prompt-text";
+  reveal.appendChild(pre);
+
+  reveal.addEventListener("toggle", async () => {
+    if (!reveal.open || pre.textContent) return;
+    pre.textContent = "loading...";
+    try {
+      const res = await fetch(`/api/prompt?tone=${currentTone}`);
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error);
+      pre.textContent = `${json.data.persona}\n\n${json.data.base}`;
+    } catch {
+      pre.textContent = "couldn't load the prompt — try refreshing?";
+    }
+  });
+
+  parent.appendChild(reveal);
+}
+
+// Hand-rolled markdown render. textContent everywhere — model output never reaches innerHTML.
+function renderMd(md, root) {
+  root.replaceChildren();
+  let list = null;
+  for (const raw of md.split("\n")) {
+    const line = raw.trim();
+    if (!line) { list = null; continue; }
+    let m, el;
+    if ((m = line.match(/^(#{1,3})\s+(.+)$/))) {
+      el = document.createElement("h" + m[1].length);
+      renderInline(m[2], el);
+      list = null;
+    } else if ((m = line.match(/^[-*]\s+(.+)$/))) {
+      if (!list) { list = document.createElement("ul"); root.appendChild(list); }
+      const li = document.createElement("li");
+      renderInline(m[1], li);
+      list.appendChild(li);
+      continue;
+    } else if ((m = line.match(/^>\s*(.+)$/))) {
+      el = document.createElement("blockquote");
+      renderInline(m[1], el);
+      list = null;
+    } else {
+      el = document.createElement("p");
+      renderInline(line, el);
+      list = null;
+    }
+    root.appendChild(el);
+  }
+}
+
+function renderInline(text, parent) {
+  const re = /\*\*([^*]+)\*\*|\*([^*\n]+)\*/g;
+  let last = 0, m;
+  while ((m = re.exec(text))) {
+    if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
+    const el = document.createElement(m[1] ? "strong" : "em");
+    el.textContent = m[1] || m[2];
+    parent.appendChild(el);
+    last = re.lastIndex;
+  }
+  if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
+}
+
+// Post-actions.
+againBtn.addEventListener("click", () => {
+  output.hidden = true;
+  outputBody.replaceChildren();
+  resumeText = ""; fileInput.value = "";
+  fileStatus.hidden = true; fileStatus.textContent = "";
+  updateRoastBtn();
+  dropzone.scrollIntoView({ behavior: "smooth", block: "center" });
+});
+
+shareBtn.addEventListener("click", async () => {
+  const original = shareBtn.textContent;
+  try {
+    const prose = outputBody.querySelector(".prose");
+    const pq = outputBody.querySelector(".pull-quote");
+    const text = [
+      pq ? `"${pq.textContent}"` : "",
+      prose ? prose.innerText : outputBody.innerText,
+      "— via Resume Roaster",
+    ].filter(Boolean).join("\n\n");
+    await navigator.clipboard.writeText(text);
+    shareBtn.textContent = "copied.";
+  } catch {
+    shareBtn.textContent = "couldn't copy.";
+  }
+  setTimeout(() => { shareBtn.textContent = original; }, 1500);
+});
+
+printBtn.addEventListener("click", () => window.print());
+
+// Auth — Clerk gates the upload UI. Logged-out users see only the sign-in hero.
+const signInUI = $("signInUI");
+const appHeader = $("appHeader");
+const inputsSection = $("inputs");
+const userMenu = $("userMenu");
+const quotaBar = $("quotaBar");
+const quotaFill = $("quotaFill");
+const quotaUsedEl = $("quotaUsed");
+const quotaLimitEl = $("quotaLimit");
+const quotaResetEl = $("quotaResetAt");
+const quotaExceeded = $("quotaExceeded");
+let quotaState = null;
+// Phase 5 — guard state mirror for client-side UX checks. Fail-closed defaults
+// so a missed /api/config-public fetch can't accidentally let a 50mb file through.
+let publicConfig = { guards: { filesize: "on", injection: "on", output: "on" } };
+const userMenuTrigger = $("userMenuTrigger");
+const userMenuPanel = $("userMenuPanel");
+const userNameEl = userMenu.querySelector(".user-name");
+const signInBtn = $("signInBtn");
+const signOutBtn = $("signOutBtn");
+
+function setUserMenuOpen(open) {
+  userMenu.dataset.open = open ? "true" : "false";
+  userMenuPanel.hidden = !open;
+  userMenuTrigger.setAttribute("aria-expanded", String(open));
+}
+userMenuTrigger.addEventListener("click", (e) => {
+  e.stopPropagation();
+  setUserMenuOpen(userMenu.dataset.open !== "true");
+});
+document.addEventListener("click", (e) => {
+  if (userMenu.dataset.open === "true" && !userMenu.contains(e.target)) setUserMenuOpen(false);
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && userMenu.dataset.open === "true") setUserMenuOpen(false);
+});
+
+async function initAuth() {
+  const cfgRes = await fetch("/api/clerk-config");
+  const cfg = await cfgRes.json();
+  if (!cfg.ok) throw new Error("config_unavailable");
+  const pk = cfg.data.publishableKey;
+
+  // Use the Clerk-hosted instance-specific bundle URL: the frontend API hostname
+  // is encoded in the publishable key, and the bundle auto-keys itself to that
+  // instance with no extra config. The generic-CDN path (jsdelivr) doesn't work
+  // here because the v5 bundle reads its key from document.currentScript, which
+  // is null for dynamically-injected scripts.
+  const frontendApi = frontendApiFromPk(pk);
+  if (!frontendApi) throw new Error("invalid_publishable_key");
+
+  await new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = `https://${frontendApi}/npm/@clerk/clerk-js@5/dist/clerk.browser.js`;
+    s.setAttribute("data-clerk-publishable-key", pk);
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    s.onload = resolve;
+    s.onerror = () => reject(new Error("sdk_load_failed"));
+    document.head.appendChild(s);
+  });
+
+  if (!window.Clerk) throw new Error("sdk_missing");
+  clerk = window.Clerk;
+  // Force-redirect URLs override Clerk's "default-redirect" fallback that fires
+  // when the dashboard's after-sign-in URL isn't configured for this domain.
+  await clerk.load({
+    signInForceRedirectUrl: window.location.origin,
+    signUpForceRedirectUrl: window.location.origin,
+    signInFallbackRedirectUrl: window.location.origin,
+    signUpFallbackRedirectUrl: window.location.origin,
+  });
+
+  // After returning from Google's OAuth flow, finalize the handshake. Clerk's
+  // SDK does this from URL params; if none are present, calling
+  // handleRedirectCallback() *redirects to Clerk's hosted sign-in page* — so
+  // gate the call on a positive callback-param check.
+  const u = new URL(window.location.href);
+  const cbKeys = ["__clerk_status", "__clerk_handshake", "__clerk_db_jwt", "__clerk_ticket", "__clerk_modal_state"];
+  const hasCallback = cbKeys.some((k) => u.searchParams.has(k));
+  if (hasCallback && !clerk.user) {
+    try {
+      await clerk.handleRedirectCallback({
+        afterSignInUrl: window.location.origin,
+        afterSignUpUrl: window.location.origin,
+      });
+    } catch (e) {
+      console.log("clerk callback err:", e?.message || e);
+    }
+
+    // OAuth transfer reconciliation. When a brand-new email returns from Google,
+    // the resource we *initiated* may set `transferable` instead of completing —
+    // Clerk expects an explicit transfer to the other resource to finalise the
+    // user. Try both directions defensively; the wrong-side call is a no-op.
+    if (!clerk.user) {
+      try {
+        if (clerk.client?.signUp?.status === "transferable") {
+          await clerk.client.signIn.create({ transfer: true });
+        }
+      } catch (e) {
+        console.log("clerk transfer signUp→signIn err:", e?.message || e);
+      }
+      try {
+        if (clerk.client?.signIn?.status === "transferable") {
+          await clerk.client.signUp.create({ transfer: true });
+        }
+      } catch (e) {
+        console.log("clerk transfer signIn→signUp err:", e?.message || e);
+      }
+    }
+  }
+
+  renderAuthState();
+  clerk.addListener(() => renderAuthState());
+}
+
+// pk_test_<b64> / pk_live_<b64>; the b64 decodes to "<frontend-api-host>$".
+function frontendApiFromPk(pk) {
+  if (typeof pk !== "string") return null;
+  const parts = pk.split("_");
+  if (parts.length < 3) return null;
+  try {
+    const decoded = atob(parts.slice(2).join("_"));
+    const host = decoded.replace(/\$$/, "");
+    return /^[a-z0-9.-]+$/i.test(host) ? host : null;
+  } catch {
+    return null;
+  }
+}
+
+function renderAuthState() {
+  if (!clerk) return;
+  if (clerk.user) {
+    signInUI.hidden = true;
+    appHeader.hidden = false;
+    // inputs stays hidden until fetchUsage decides; avoids a flash if quota is over.
+    const name = (clerk.user.firstName || clerk.user.username || "you").toLowerCase();
+    userNameEl.textContent = name;
+    userMenu.hidden = false;
+    fetchUsage();
+  } else {
+    signInUI.hidden = false;
+    appHeader.hidden = true;
+    inputsSection.hidden = true;
+    output.hidden = true;
+    userMenu.hidden = true;
+    quotaBar.hidden = true;
+    quotaExceeded.hidden = true;
+    quotaState = null;
+    setUserMenuOpen(false);
+  }
+}
+
+async function fetchUsage() {
+  if (!clerk?.session) return;
+  try {
+    const token = await clerk.session.getToken();
+    const res = await fetch("/api/usage", { headers: { authorization: `Bearer ${token}` } });
+    const json = await res.json();
+    if (!json.ok) {
+      // Couldn't read quota — fall back to showing inputs so the user isn't stranded.
+      inputsSection.hidden = false;
+      return;
+    }
+    quotaState = json.data;
+    renderQuota();
+  } catch {
+    inputsSection.hidden = false;
+  }
+}
+
+function renderQuota() {
+  if (!quotaState || !clerk?.user) return;
+  const { used, limit, percentUsed, resetsAt } = quotaState;
+  quotaUsedEl.textContent = Number(used).toLocaleString();
+  quotaLimitEl.textContent = Number(limit).toLocaleString();
+  quotaResetEl.textContent = formatResetTime(resetsAt);
+  quotaFill.style.width = `${Math.min(100, Number(percentUsed) || 0)}%`;
+
+  const exceeded = used >= limit;
+  quotaBar.hidden = exceeded;
+  inputsSection.hidden = exceeded;
+  quotaExceeded.hidden = !exceeded;
+}
+
+function formatResetTime(iso) {
+  try {
+    const d = new Date(iso);
+    return new Intl.DateTimeFormat(undefined, {
+      hour: "numeric", minute: "2-digit", hour12: true,
+    }).format(d).toLowerCase();
+  } catch {
+    return "tomorrow";
+  }
+}
+
+// authenticateWithRedirect on the SignUp resource handles BOTH new and returning
+// users via Clerk's transfer logic — new gmails get an account created on the
+// callback; existing gmails get transparently signed in. Calling signIn here
+// instead bricks new users with `signIn.status === "transferable"` and a loop
+// back to this screen (#038). Strategy oauth_google → straight to Google, no
+// Clerk UI rendered, sidesteps the no-modal rule.
+signInBtn.addEventListener("click", async () => {
+  if (!clerk?.client?.signUp) return;
+  signInBtn.disabled = true;
+  try {
+    await clerk.client.signUp.authenticateWithRedirect({
+      strategy: "oauth_google",
+      redirectUrl: window.location.origin,
+      redirectUrlComplete: window.location.origin,
+    });
+  } catch (err) {
+    signInBtn.disabled = false;
+    const note = signInUI.querySelector(".signin-fineprint");
+    note.textContent = "couldn't reach google sign-in — try again?";
+  }
+});
+
+signOutBtn.addEventListener("click", async () => {
+  if (!clerk) return;
+  await clerk.signOut();
+});
+
+async function fetchPublicConfig() {
+  try {
+    const res = await fetch("/api/config-public");
+    const json = await res.json();
+    if (json?.ok && json.data?.guards) publicConfig = json.data;
+  } catch {
+    // Keep fail-closed defaults — see initial publicConfig declaration.
+  }
+}
+
+fetchPublicConfig();
+
+initAuth().catch(() => {
+  signInUI.hidden = false;
+  signInUI.querySelector(".signin-fineprint").textContent = "auth is having a moment. refresh in a sec?";
+  signInBtn.disabled = true;
+});
+</script>
+</body>
+</html>
