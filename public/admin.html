@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Resume Roaster · Admin</title>
+<meta name="description" content="the boring beautiful part. live levers for the live demo." />
+<script>
+  (function () {
+    const stored = localStorage.getItem("theme");
+    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", stored || preferred);
+  })();
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg: #F7F4EC;
+    --fg: #1a1814;
+    --muted: #8b8577;
+    --muted-faint: rgba(139,133,119,0.6);
+    --accent: #CC5500;
+    --accent-soft: rgba(204,85,0,0.12);
+    --line-faint: rgba(0,0,0,0.06);
+    --line-mid: rgba(0,0,0,0.16);
+    --line-strong: rgba(0,0,0,0.32);
+    --recess: rgba(0,0,0,0.014);
+    --recess-hover: rgba(0,0,0,0.024);
+    color-scheme: light;
+  }
+  [data-theme="dark"] {
+    --bg: #14110d;
+    --fg: #F7F4EC;
+    --muted: #9a9285;
+    --muted-faint: rgba(154,146,133,0.55);
+    --accent: #FF7733;
+    --accent-soft: rgba(255,119,51,0.16);
+    --line-faint: rgba(255,255,255,0.07);
+    --line-mid: rgba(255,255,255,0.18);
+    --line-strong: rgba(255,255,255,0.4);
+    --recess: rgba(255,255,255,0.022);
+    --recess-hover: rgba(255,255,255,0.045);
+    color-scheme: dark;
+  }
+  body {
+    font-family: -apple-system, "Segoe UI", Inter, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    transition: background-color 240ms ease, color 240ms ease;
+  }
+  .serif { font-family: Georgia, serif; }
+  .muted { color: var(--muted); }
+  .muted-faint { color: var(--muted-faint); }
+  .accent { color: var(--accent); }
+  .label {
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  hr.thin { border: 0; border-top: 1px solid var(--line-faint); margin: 0; }
+
+  .headline {
+    font-family: Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    font-size: clamp(36px, 6.5vw, 64px);
+  }
+  .headline em { color: var(--accent); font-style: italic; }
+  .lede {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 32em;
+  }
+  .link { color: var(--fg); border-bottom: 1px solid var(--line-mid); transition: color 180ms, border-color 180ms; }
+  .link:hover { color: var(--accent); border-color: var(--accent); }
+
+  .theme-btn {
+    position: fixed; top: 14px; right: 14px;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500;
+    color: var(--muted); background: var(--bg);
+    border: 1px solid var(--line-faint);
+    padding: 5px 11px; border-radius: 4px; cursor: pointer;
+    transition: color 200ms, border-color 200ms;
+    z-index: 10;
+    font-family: inherit;
+  }
+  .theme-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .signout-link {
+    position: fixed; top: 14px; right: 80px;
+    font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase;
+    background: transparent; border: 0; padding: 5px 10px;
+    color: var(--muted); cursor: pointer;
+    transition: color 180ms;
+    z-index: 10;
+    font-family: inherit;
+  }
+  .signout-link:hover { color: var(--accent); }
+
+  .masthead { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; gap: 16px; }
+  .colophon { margin-top: 80px; padding-top: 14px; border-top: 1px solid var(--line-faint); }
+
+  /* Sign-in hero (logged out) */
+  .signin-hero {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding: 32px 0 80px;
+  }
+  .signin-display {
+    font-family: Georgia, serif; font-weight: 400;
+    font-size: clamp(36px, 5.5vw, 52px);
+    line-height: 1.05; letter-spacing: -0.025em;
+    margin: 0 0 22px 0; max-width: 18ch;
+  }
+  .signin-display em { color: var(--accent); font-style: italic; }
+  .signin-pitch {
+    font-family: Georgia, serif; font-style: italic;
+    color: var(--muted);
+    font-size: 16px; line-height: 1.55;
+    max-width: 30em; margin: 0 0 32px 0;
+  }
+  .signin-rule {
+    border: 0; border-top: 1px solid var(--line-faint);
+    width: 56px; margin: 0 auto 26px;
+  }
+  .signin-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: inherit;
+    font-size: 14px; font-weight: 500; letter-spacing: 0.01em;
+    padding: 13px 26px;
+    background: transparent; color: var(--fg);
+    border: 1px solid var(--line-mid); border-radius: 4px;
+    cursor: pointer;
+    transition: border-color 200ms, color 200ms;
+    margin: 0 0 18px 0;
+  }
+  .signin-cta:hover { border-color: var(--accent); color: var(--accent); }
+  .signin-cta:disabled { opacity: 0.4; cursor: not-allowed; }
+  .signin-fineprint {
+    font-size: 12px; color: var(--muted); font-style: italic;
+    max-width: 32em; line-height: 1.55; margin: 0;
+  }
+
+  /* Forbidden state */
+  .forbidden-state {
+    text-align: center; padding: 80px 0 40px;
+  }
+  .forbidden-state h2 {
+    font-family: Georgia, serif; font-weight: 400;
+    font-size: clamp(28px, 4vw, 36px);
+    margin: 0 0 12px 0; letter-spacing: -0.015em;
+  }
+  .forbidden-state p {
+    color: var(--muted); font-style: italic;
+    font-size: 15px; line-height: 1.55;
+    margin: 0 auto 28px; max-width: 30em;
+  }
+  .forbidden-state .links { display: inline-flex; gap: 18px; }
+
+  /* Section frame */
+  .admin-section {
+    margin-bottom: 56px;
+  }
+  .section-label {
+    font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--muted-faint); font-weight: 500;
+    margin: 0 0 16px 0;
+  }
+  .admin-section h3.config-card-title {
+    font-family: Georgia, serif; font-weight: 600;
+    font-size: 19px; margin: 0 0 8px 0; letter-spacing: -0.005em;
+  }
+
+  /* Stat strip */
+  .stat-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    border-top: 1px solid var(--line-faint);
+    border-bottom: 1px solid var(--line-faint);
+    padding: 22px 0;
+  }
+  .stat-label {
+    font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--muted-faint); font-weight: 500;
+    margin: 0 0 8px 0;
+  }
+  .stat-num {
+    font-family: Georgia, serif; font-weight: 400;
+    font-size: clamp(24px, 3vw, 34px); line-height: 1;
+    margin: 0; letter-spacing: -0.01em;
+  }
+  .stat-num.accent { color: var(--accent); }
+
+  /* Per-user table */
+  .usage-table-wrap { overflow-x: auto; }
+  .usage-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .usage-table th {
+    text-align: left;
+    font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted-faint); font-weight: 500;
+    padding: 8px 12px 8px 0;
+    border-bottom: 1px solid var(--line-faint);
+  }
+  .usage-table td {
+    padding: 12px 12px 12px 0;
+    border-bottom: 1px solid var(--line-faint);
+    vertical-align: middle;
+    font-size: 13px;
+  }
+  .usage-table .col-tokens { white-space: nowrap; }
+  .usage-table .col-actions { white-space: nowrap; }
+  .usage-table .user-cell { font-weight: 500; }
+  .usage-table .email-cell {
+    color: var(--muted); font-size: 12px;
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .mini-bar {
+    display: inline-block;
+    width: 80px; height: 3px;
+    background: var(--line-faint);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .mini-fill { height: 100%; background: var(--accent); transition: width 300ms ease-out; }
+
+  .action-btn {
+    border: 1px solid var(--line-faint);
+    padding: 4px 10px; border-radius: 4px;
+    background: transparent; color: var(--fg);
+    font-size: 11px; cursor: pointer;
+    transition: border-color 180ms, color 180ms;
+    font-family: inherit;
+    margin-right: 6px;
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .action-btn.confirm { border-color: var(--accent); color: var(--accent); }
+  .action-btn.cancel { color: var(--muted); }
+
+  .row-confirm {
+    display: flex; gap: 8px; align-items: center;
+    padding: 12px; margin: 8px 0;
+    border: 1px solid var(--line-faint); border-radius: 4px;
+    background: var(--recess);
+  }
+  .row-confirm input[type="number"] {
+    border: 1px solid var(--line-faint); border-radius: 3px;
+    padding: 5px 8px; font-size: 13px;
+    background: var(--bg); color: var(--fg);
+    font-family: inherit; width: 100px;
+  }
+  .row-confirm input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .row-confirm .confirm-msg {
+    font-size: 12px; color: var(--muted); font-style: italic;
+    margin-right: 4px;
+  }
+
+  /* Config cards */
+  .config-card {
+    border: 1px solid var(--line-faint); border-radius: 6px;
+    padding: 24px; margin-bottom: 24px;
+    background: var(--recess);
+  }
+
+  .model-radios {
+    display: flex; gap: 16px; margin: 14px 0 16px;
+    flex-wrap: wrap;
+  }
+  .model-radio {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 14px;
+    border: 1px solid var(--line-faint); border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: border-color 180ms;
+  }
+  .model-radio:hover { border-color: var(--line-mid); }
+  .model-radio input[type="radio"] {
+    accent-color: var(--accent);
+    margin: 0;
+  }
+  .model-radio.active { border-color: var(--accent); }
+  .model-radio .muted-faint { font-size: 11px; }
+
+  .save-btn {
+    border: 1px solid var(--line-mid); border-radius: 4px;
+    padding: 7px 18px; font-size: 12.5px;
+    background: transparent; color: var(--fg);
+    cursor: pointer; transition: border-color 180ms, color 180ms;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+  }
+  .save-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .save-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .save-btn.confirm { border-color: var(--accent); color: var(--accent); }
+
+  .secondary-btn {
+    border: 1px solid var(--line-faint); border-radius: 4px;
+    padding: 7px 14px; font-size: 12.5px;
+    background: transparent; color: var(--muted);
+    cursor: pointer; transition: border-color 180ms, color 180ms;
+    font-family: inherit;
+    margin-left: 8px;
+  }
+  .secondary-btn:hover:not(:disabled) { border-color: var(--line-mid); color: var(--fg); }
+  .secondary-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Tone prompt cards */
+  .tone-card {
+    border: 1px solid var(--line-faint); border-radius: 6px;
+    padding: 22px; margin-bottom: 18px;
+    background: var(--recess);
+  }
+  .tone-card-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+  }
+  .tone-card-name {
+    font-family: Georgia, serif; font-weight: 600;
+    font-size: 18px; letter-spacing: -0.005em;
+    margin: 0;
+  }
+  .tone-card-meta {
+    font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--muted-faint);
+  }
+  .tone-card-meta .source-redis { color: var(--accent); }
+  .tone-textarea {
+    width: 100%;
+    min-height: 320px;
+    padding: 14px;
+    border: 1px solid var(--line-faint); border-radius: 4px;
+    background: var(--bg); color: var(--fg);
+    font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+    font-size: 12px; line-height: 1.55;
+    resize: vertical;
+    box-sizing: border-box;
+  }
+  .tone-textarea:focus { outline: none; border-color: var(--line-mid); }
+  .tone-actions {
+    display: flex; gap: 8px; align-items: center;
+    margin-top: 12px; flex-wrap: wrap;
+  }
+  .tone-confirm {
+    margin-top: 10px;
+    font-size: 12px; color: var(--muted); font-style: italic;
+    border-left: 2px solid var(--accent);
+    padding: 6px 12px;
+    display: none;
+  }
+  .tone-confirm.show { display: block; }
+  .tone-confirm-row { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+
+  /* Guards */
+  .guard-list {
+    border: 1px solid var(--line-faint); border-radius: 6px;
+    background: var(--recess);
+    padding: 4px 0;
+  }
+  .guard-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--line-faint);
+  }
+  .guard-row:last-child { border-bottom: 0; }
+  .guard-label {
+    font-size: 14px; margin: 0;
+  }
+  .toggle {
+    width: 32px; height: 18px;
+    border: 1px solid var(--line-mid);
+    border-radius: 10px;
+    background: transparent;
+    position: relative;
+    cursor: pointer;
+    transition: border-color 180ms;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .toggle::before {
+    content: '';
+    position: absolute; top: 2px; left: 2px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: left 180ms ease, background-color 180ms;
+  }
+  .toggle[data-on="true"] { border-color: var(--accent); }
+  .toggle[data-on="true"]::before { left: 16px; background: var(--accent); }
+  .toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Audit log + changelog */
+  .changelog {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line-faint);
+  }
+  .changelog-list {
+    list-style: none; padding: 0; margin: 0;
+  }
+  .changelog-list li {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--line-faint);
+    font-size: 12.5px;
+    line-height: 1.55;
+    display: flex;
+    gap: 14px;
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+  .changelog-list li:last-child { border-bottom: 0; }
+  .changelog-list .ts {
+    color: var(--muted-faint);
+    font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+    font-size: 11px;
+    flex-shrink: 0;
+    min-width: 130px;
+  }
+  .changelog-list .who {
+    color: var(--muted); font-size: 12px;
+    flex-shrink: 0;
+  }
+  .changelog-list .what {
+    color: var(--fg);
+    font-size: 13px;
+  }
+  .changelog-list .what strong { color: var(--accent); font-weight: 500; }
+  .changelog-list .denied .what { color: var(--muted); font-style: italic; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: var(--bg);
+    border: 1px solid var(--line-mid);
+    padding: 8px 18px;
+    border-radius: 4px;
+    font-size: 12.5px; color: var(--fg);
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 240ms;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 720px) {
+    .stat-strip { grid-template-columns: repeat(2, 1fr); gap: 18px 14px; }
+    .stat-num { font-size: 24px; }
+  }
+  @media (max-width: 540px) {
+    .theme-btn { top: 10px; right: 10px; padding: 4px 9px; }
+    .signout-link { top: 38px; right: 10px; padding: 4px 9px; }
+    .config-card, .tone-card { padding: 18px; }
+    .guard-row { padding: 12px 16px; }
+    .changelog-list .ts { min-width: 100px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<button id="themeBtn" class="theme-btn">dark</button>
+<button id="signOutLink" class="signout-link" hidden>sign out</button>
+
+<main class="max-w-3xl mx-auto px-6 py-12">
+  <header class="masthead-section mb-12">
+    <div class="masthead">
+      <p class="label">RESUME ROASTER · ADMIN</p>
+      <p class="label muted-faint">NO. 001 · OPS</p>
+    </div>
+    <hr class="thin" />
+    <h1 class="headline mt-7 mb-4">the <em>boring</em> beautiful part.</h1>
+    <p class="lede">live levers for the live demo. flip these and the next roast feels different.</p>
+  </header>
+
+  <section id="loadingState" class="muted italic" style="padding: 40px 0;">loading…</section>
+
+  <section id="signInPrompt" class="signin-hero" hidden>
+    <h2 class="signin-display">admin <em>access</em>.</h2>
+    <p class="signin-pitch">this dashboard is reserved for the operator. sign in with the admin email to continue.</p>
+    <hr class="signin-rule" />
+    <button id="signInBtn" class="signin-cta">continue with google</button>
+    <p class="signin-fineprint">non-admin sign-ins are politely rejected by the server. no information about other users is exposed at this gate.</p>
+  </section>
+
+  <section id="forbiddenState" class="forbidden-state" hidden>
+    <h2>admin only.</h2>
+    <p>you're signed in, but this dashboard is reserved for the operator. nothing else to see here.</p>
+    <div class="links">
+      <a href="/" class="link">back to home</a>
+      <button id="forbiddenSignOut" class="link" style="background: transparent; border: 0; cursor: pointer; padding: 0; font-family: Georgia, serif; font-style: italic;">sign out</button>
+    </div>
+  </section>
+
+  <div id="dashboard" hidden>
+
+    <!-- Section 1: stat strip -->
+    <section class="admin-section">
+      <p class="section-label">SECTION 1 · TODAY'S NUMBERS</p>
+      <div class="stat-strip">
+        <div class="stat">
+          <p class="stat-label">USERS TODAY</p>
+          <p class="stat-num" id="statUsers">—</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">TOKENS SPENT</p>
+          <p class="stat-num" id="statTokens">—</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">EST. COST</p>
+          <p class="stat-num accent" id="statCost">—</p>
+        </div>
+        <div class="stat">
+          <p class="stat-label">ACTIVE MODEL</p>
+          <p class="stat-num" id="statModel" style="font-size: 19px;">—</p>
+        </div>
+      </div>
+      <p class="muted-faint italic" style="font-size: 11px; margin-top: 10px;">approximate. updated each refresh.</p>
+    </section>
+
+    <!-- Section 2: per-user table -->
+    <section class="admin-section">
+      <p class="section-label">SECTION 2 · PER-USER USAGE</p>
+      <p class="lede" style="font-size: 13.5px; margin-bottom: 16px;">top 50 by tokens used today.</p>
+      <div class="usage-table-wrap">
+        <table class="usage-table">
+          <thead>
+            <tr>
+              <th>user</th>
+              <th>email</th>
+              <th>tokens</th>
+              <th>cost</th>
+              <th>override</th>
+              <th>actions</th>
+            </tr>
+          </thead>
+          <tbody id="usageRows"></tbody>
+        </table>
+        <p id="usageEmpty" class="muted italic" style="padding: 20px 0;" hidden>no usage today yet.</p>
+      </div>
+    </section>
+
+    <!-- Section 3: global config -->
+    <section class="admin-section">
+      <p class="section-label">SECTION 3 · GLOBAL CONFIG</p>
+
+      <!-- 3a: model -->
+      <div class="config-card">
+        <h3 class="config-card-title">active model</h3>
+        <p class="muted" style="font-size: 13px; margin: 4px 0 0;">the model used by every roast. fallback to gpt-4o still kicks in if primary 404s.</p>
+        <div class="model-radios" id="modelRadios">
+          <label class="model-radio">
+            <input type="radio" name="model" value="gpt-5.4-mini" />
+            <span>gpt-5.4-mini</span>
+            <span class="muted-faint">primary</span>
+          </label>
+          <label class="model-radio">
+            <input type="radio" name="model" value="gpt-4o" />
+            <span>gpt-4o</span>
+            <span class="muted-faint">fallback</span>
+          </label>
+        </div>
+        <button id="saveModelBtn" class="save-btn" disabled>save</button>
+      </div>
+
+      <!-- 3b: tone prompts -->
+      <div style="margin-bottom: 24px;">
+        <h3 class="config-card-title" style="margin-top: 8px;">tone prompts</h3>
+        <p class="muted" style="font-size: 13px; margin: 4px 0 16px;">overrides the file at runtime. the next roast picks it up.</p>
+        <div id="tonePromptCards"></div>
+      </div>
+
+      <!-- tone prompts changelog -->
+      <div class="config-card">
+        <p class="section-label">TONE PROMPTS CHANGELOG</p>
+        <ul id="toneChangelog" class="changelog-list">
+          <li class="muted italic">no edits yet.</li>
+        </ul>
+      </div>
+
+      <!-- 3c: guards -->
+      <h3 class="config-card-title" style="margin-top: 32px;">abuse guards</h3>
+      <p class="muted" style="font-size: 13px; margin: 4px 0 14px;">defaults are on. flip them off only for live demo theatre. the roast endpoint logs every off-state run.</p>
+      <div class="guard-list" id="guardList">
+        <div class="guard-row">
+          <p class="guard-label">file size limit (5MB)</p>
+          <button class="toggle" data-guard="filesize" aria-label="toggle file size limit"></button>
+        </div>
+        <div class="guard-row">
+          <p class="guard-label">prompt injection guard</p>
+          <button class="toggle" data-guard="injection" aria-label="toggle injection guard"></button>
+        </div>
+        <div class="guard-row">
+          <p class="guard-label">output token cap (1500)</p>
+          <button class="toggle" data-guard="output" aria-label="toggle output cap"></button>
+        </div>
+      </div>
+
+      <!-- 3d: demo mode (Phase 4.5 stage-failure safety net) -->
+      <h3 class="config-card-title" style="margin-top: 32px;">demo mode</h3>
+      <p class="muted" style="font-size: 13px; margin: 4px 0 14px;">forces every roast onto the cached fallback. opens automatically after 3 openai 5xx in 60 s. the talk's emergency brake.</p>
+      <div class="guard-list">
+        <div class="guard-row">
+          <p class="guard-label">force cached responses</p>
+          <button class="toggle" id="demoModeToggle" aria-label="toggle demo mode"></button>
+        </div>
+        <div class="guard-row">
+          <p class="guard-label">recent openai failures (60s)</p>
+          <p class="muted" id="demoFailureCount" style="font-size: 13px;">—</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: audit log -->
+    <section class="admin-section">
+      <p class="section-label">SECTION 4 · RECENT ADMIN ACTIONS</p>
+      <ul id="auditLog" class="changelog-list"></ul>
+    </section>
+
+  </div>
+
+  <footer class="colophon">
+    <div class="masthead">
+      <p class="label">COLOPHON · ADMIN</p>
+      <p class="label muted-faint">NO. 001</p>
+    </div>
+    <p class="muted" style="font-size: 12.5px; margin: 8px 0 4px;">written by zaid khan · <a href="/" class="link">home</a></p>
+    <p class="muted-faint italic" style="font-size: 11.5px;">no roast or resume content reaches this dashboard. only counters, ids, and metadata.</p>
+  </footer>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const themeBtn = $("themeBtn");
+const signOutLink = $("signOutLink");
+const loadingState = $("loadingState");
+const signInPrompt = $("signInPrompt");
+const signInBtn = $("signInBtn");
+const forbiddenState = $("forbiddenState");
+const forbiddenSignOut = $("forbiddenSignOut");
+const dashboard = $("dashboard");
+const toast = $("toast");
+
+// Theme toggle (same as index.html)
+function syncThemeBtnLabel() {
+  const t = document.documentElement.getAttribute("data-theme") || "light";
+  themeBtn.textContent = t === "dark" ? "light" : "dark";
+}
+syncThemeBtnLabel();
+themeBtn.addEventListener("click", () => {
+  const current = document.documentElement.getAttribute("data-theme") || "light";
+  const next = current === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("theme", next);
+  syncThemeBtnLabel();
+});
+
+// Toast (single, ephemeral status line — not a sticky modal/notification)
+let toastTimer = null;
+function showToast(msg, isError = false) {
+  toast.textContent = msg;
+  toast.classList.toggle("error", !!isError);
+  toast.classList.add("show");
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 2400);
+}
+
+let clerk = null;
+
+function frontendApiFromPk(pk) {
+  if (typeof pk !== "string") return null;
+  const parts = pk.split("_");
+  if (parts.length < 3) return null;
+  try {
+    const decoded = atob(parts.slice(2).join("_"));
+    const host = decoded.replace(/\$$/, "");
+    return /^[a-z0-9.-]+$/i.test(host) ? host : null;
+  } catch { return null; }
+}
+
+const DEBUG = new URLSearchParams(window.location.search).has('debug');
+let debugBox = null;
+if (DEBUG) {
+  debugBox = document.createElement('div');
+  debugBox.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#14110d;color:#F7F4EC;border-top:2px solid #FF7733;padding:12px;max-height:55vh;overflow:auto;font-family:ui-monospace,monospace;font-size:11px;line-height:1.5;z-index:9999;white-space:pre-wrap;word-break:break-all;';
+  document.body.appendChild(debugBox);
+}
+function dbg(...args) {
+  if (!DEBUG || !debugBox) return;
+  const line = args.map((a) => typeof a === 'string' ? a : JSON.stringify(a, null, 2)).join(' ');
+  debugBox.textContent += '\n[' + new Date().toISOString().slice(11, 23) + '] ' + line;
+}
+
+async function initAuth() {
+  dbg('initAuth start. URL:', window.location.href);
+  const cfgRes = await fetch("/api/clerk-config");
+  const cfg = await cfgRes.json();
+  dbg('config fetch:', cfg.ok ? 'ok' : 'fail');
+  if (!cfg.ok) throw new Error("config_unavailable");
+  const pk = cfg.data.publishableKey;
+  const frontendApi = frontendApiFromPk(pk);
+  if (!frontendApi) throw new Error("invalid_publishable_key");
+  dbg('frontendApi:', frontendApi);
+
+  await new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = `https://${frontendApi}/npm/@clerk/clerk-js@5/dist/clerk.browser.js`;
+    s.setAttribute("data-clerk-publishable-key", pk);
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    s.onload = resolve;
+    s.onerror = () => reject(new Error("sdk_load_failed"));
+    document.head.appendChild(s);
+  });
+  dbg('clerk SDK loaded');
+
+  if (!window.Clerk) throw new Error("sdk_missing");
+  clerk = window.Clerk;
+  // Use a stable URL (without query params) — using window.location.href would
+  // re-include any handshake params on the return trip, risking redirect loops.
+  const ADMIN_URL = window.location.origin + "/admin";
+  await clerk.load({
+    signInForceRedirectUrl: ADMIN_URL,
+    signUpForceRedirectUrl: ADMIN_URL,
+    signInFallbackRedirectUrl: ADMIN_URL,
+    signUpFallbackRedirectUrl: ADMIN_URL,
+  });
+  dbg('clerk.load() done. user:', clerk.user ? { id: clerk.user.id, email: clerk.user.primaryEmailAddress?.emailAddress } : null, 'session:', clerk.session ? 'yes' : 'no');
+
+  const u = new URL(window.location.href);
+  const cbKeys = ["__clerk_status", "__clerk_handshake", "__clerk_db_jwt", "__clerk_ticket", "__clerk_modal_state", "__clerk_oauth_callback"];
+  const presentCbKeys = cbKeys.filter((k) => u.searchParams.has(k));
+  dbg('callback params present:', presentCbKeys);
+  if (presentCbKeys.length && !clerk.user) {
+    dbg('calling handleRedirectCallback...');
+    try {
+      await clerk.handleRedirectCallback({
+        afterSignInUrl: ADMIN_URL,
+        afterSignUpUrl: ADMIN_URL,
+      });
+      dbg('handleRedirectCallback done. user now:', clerk.user ? { id: clerk.user.id } : null);
+    } catch (e) {
+      dbg('handleRedirectCallback ERROR:', e?.message || String(e));
+    }
+
+    // OAuth transfer reconciliation (#038). New emails return as `transferable`
+    // on the resource we initiated; the wrong-side call is a safe no-op.
+    if (!clerk.user) {
+      try {
+        if (clerk.client?.signUp?.status === "transferable") {
+          dbg('transferring signUp → signIn...');
+          await clerk.client.signIn.create({ transfer: true });
+        }
+      } catch (e) { dbg('transfer signUp→signIn err:', e?.message || String(e)); }
+      try {
+        if (clerk.client?.signIn?.status === "transferable") {
+          dbg('transferring signIn → signUp...');
+          await clerk.client.signUp.create({ transfer: true });
+        }
+      } catch (e) { dbg('transfer signIn→signUp err:', e?.message || String(e)); }
+    }
+
+    // Clean URL params so a reload doesn't re-trigger.
+    try { window.history.replaceState({}, "", "/admin"); } catch {}
+  }
+
+  await routeOnAuthState();
+  clerk.addListener(() => {
+    dbg('clerk listener fired. user:', clerk.user ? { id: clerk.user.id } : null);
+    routeOnAuthState();
+  });
+}
+
+async function routeOnAuthState() {
+  dbg('routeOnAuthState. clerk.user =', clerk?.user ? { id: clerk.user.id, email: clerk.user.primaryEmailAddress?.emailAddress } : null);
+  loadingState.hidden = true;
+  if (!clerk.user) {
+    signInPrompt.hidden = false;
+    forbiddenState.hidden = true;
+    dashboard.hidden = true;
+    signOutLink.hidden = true;
+    return;
+  }
+
+  // Logged in — try the gate via /api/admin/usage. The server is the real check.
+  try {
+    const data = await adminFetch("/api/admin/usage");
+    dbg('admin/usage gate:', { ok: data.ok, status: data.status, code: data.code });
+    if (data.ok) {
+      signInPrompt.hidden = true;
+      forbiddenState.hidden = true;
+      dashboard.hidden = false;
+      signOutLink.hidden = false;
+      renderUsage(data.data);
+      await loadConfig();
+      await loadDemoMode();
+      await loadAuditLog();
+      return;
+    }
+    if (data.status === 403) {
+      signInPrompt.hidden = true;
+      forbiddenState.hidden = false;
+      dashboard.hidden = true;
+      signOutLink.hidden = true;
+      return;
+    }
+    // 401 or other — treat as not-signed-in.
+    signInPrompt.hidden = false;
+    forbiddenState.hidden = true;
+    dashboard.hidden = true;
+    signOutLink.hidden = true;
+  } catch (e) {
+    dbg('routeOnAuthState ERROR:', e?.message);
+    signInPrompt.hidden = false;
+    forbiddenState.hidden = true;
+    dashboard.hidden = true;
+  }
+}
+
+signInBtn.addEventListener("click", async () => {
+  if (!clerk?.client?.signUp) return;
+  signInBtn.disabled = true;
+  try {
+    // signUp resource handles both new and existing users via OAuth transfer (#038).
+    // The admin allowlist is enforced server-side AFTER Clerk creates/finds the user.
+    await clerk.client.signUp.authenticateWithRedirect({
+      strategy: "oauth_google",
+      redirectUrl: window.location.origin + "/admin",
+      redirectUrlComplete: window.location.origin + "/admin",
+    });
+  } catch {
+    signInBtn.disabled = false;
+    signInPrompt.querySelector(".signin-fineprint").textContent = "couldn't reach google sign-in — try again?";
+  }
+});
+
+async function doSignOut() {
+  if (!clerk) return;
+  await clerk.signOut();
+  window.location.href = "/";
+}
+signOutLink.addEventListener("click", doSignOut);
+forbiddenSignOut.addEventListener("click", doSignOut);
+
+// Auth-aware fetch wrapper. Returns { ok, status, data?, code?, error? }.
+async function adminFetch(path, opts = {}) {
+  if (!clerk?.session) return { ok: false, status: 401, code: 'NO_SESSION' };
+  const token = await clerk.session.getToken();
+  const res = await fetch(path, {
+    ...opts,
+    headers: {
+      ...(opts.headers || {}),
+      authorization: `Bearer ${token}`,
+      ...(opts.body ? { "content-type": "application/json" } : {}),
+    },
+  });
+  let json = null;
+  try { json = await res.json(); } catch {}
+  if (!res.ok) {
+    return { ok: false, status: res.status, code: json?.code || 'HTTP_ERROR', error: json?.error };
+  }
+  return { ok: true, status: res.status, data: json?.data || {} };
+}
+
+// ---------- Section 1 + 2 ----------
+function renderUsage(data) {
+  const tl = data.todayLoad || {};
+  $("statUsers").textContent = (tl.totalUsers || 0).toLocaleString();
+  $("statTokens").textContent = (tl.totalTokens || 0).toLocaleString();
+  $("statCost").textContent = `$${(tl.estCostUsd || 0).toFixed(2)}`;
+  $("statModel").textContent = tl.activeModel || "—";
+
+  const rows = $("usageRows");
+  rows.replaceChildren();
+  const list = data.perUser || [];
+  if (!list.length) {
+    $("usageEmpty").hidden = false;
+    return;
+  }
+  $("usageEmpty").hidden = true;
+
+  const limit = 30000;
+  for (const row of list) {
+    const tr = document.createElement("tr");
+    tr.dataset.userId = row.userId;
+
+    const cellUser = document.createElement("td");
+    cellUser.className = "user-cell";
+    cellUser.textContent = `${(row.firstName || "").toLowerCase()}${row.lastInitial ? " " + row.lastInitial.toLowerCase() + "." : ""}` || "—";
+    tr.appendChild(cellUser);
+
+    const cellEmail = document.createElement("td");
+    cellEmail.className = "email-cell";
+    cellEmail.title = row.email || "";
+    cellEmail.textContent = row.email || "—";
+    tr.appendChild(cellEmail);
+
+    const cellTokens = document.createElement("td");
+    cellTokens.className = "col-tokens";
+    const userLimit = row.quotaOverride || limit;
+    const pct = Math.min(100, Math.round((row.tokensUsed / userLimit) * 100));
+    cellTokens.innerHTML = `<span class="mini-bar"><span class="mini-fill" style="width:${pct}%"></span></span>${(row.tokensUsed || 0).toLocaleString()}`;
+    tr.appendChild(cellTokens);
+
+    const cellCost = document.createElement("td");
+    cellCost.textContent = `$${(row.costEstimate || 0).toFixed(3)}`;
+    tr.appendChild(cellCost);
+
+    const cellOverride = document.createElement("td");
+    cellOverride.textContent = row.quotaOverride ? row.quotaOverride.toLocaleString() : "—";
+    if (row.quotaOverride) cellOverride.style.color = "var(--accent)";
+    tr.appendChild(cellOverride);
+
+    const cellActions = document.createElement("td");
+    cellActions.className = "col-actions";
+    cellActions.appendChild(makeRaiseBtn(row.userId, row.quotaOverride || limit));
+    cellActions.appendChild(makeResetBtn(row.userId));
+    tr.appendChild(cellActions);
+
+    rows.appendChild(tr);
+
+    // Confirm row (initially empty, populated when an action is clicked)
+    const confirmTr = document.createElement("tr");
+    confirmTr.className = "confirm-row";
+    confirmTr.dataset.confirmFor = row.userId;
+    const confirmTd = document.createElement("td");
+    confirmTd.colSpan = 6;
+    confirmTd.style.borderBottom = "0";
+    confirmTd.style.padding = "0";
+    confirmTr.appendChild(confirmTd);
+    rows.appendChild(confirmTr);
+  }
+}
+
+function makeRaiseBtn(userId, currentLimit) {
+  const b = document.createElement("button");
+  b.className = "action-btn";
+  b.textContent = "raise quota";
+  b.addEventListener("click", () => showRaiseConfirm(userId, currentLimit));
+  return b;
+}
+function makeResetBtn(userId) {
+  const b = document.createElement("button");
+  b.className = "action-btn";
+  b.textContent = "reset";
+  b.addEventListener("click", () => showResetConfirm(userId));
+  return b;
+}
+
+function findConfirmCell(userId) {
+  return document.querySelector(`tr.confirm-row[data-confirm-for="${userId}"] td`);
+}
+
+function showRaiseConfirm(userId, currentLimit) {
+  const cell = findConfirmCell(userId);
+  if (!cell) return;
+  cell.replaceChildren();
+  const wrap = document.createElement("div");
+  wrap.className = "row-confirm";
+  wrap.innerHTML = `
+    <span class="confirm-msg">new daily quota for this user (today only):</span>
+    <input type="number" min="0" max="10000000" step="1000" placeholder="${currentLimit}" />
+    <button class="action-btn confirm">save</button>
+    <button class="action-btn cancel">cancel</button>
+  `;
+  cell.appendChild(wrap);
+  const input = wrap.querySelector("input");
+  input.focus();
+  wrap.querySelector(".confirm").addEventListener("click", async () => {
+    const value = Number(input.value);
+    if (!Number.isFinite(value) || value < 0) {
+      showToast("enter a valid number", true);
+      return;
+    }
+    const r = await adminFetch("/api/admin/quota", {
+      method: "POST",
+      body: JSON.stringify({ userId, action: "set", value }),
+    });
+    if (r.ok) {
+      showToast("quota updated.");
+      cell.replaceChildren();
+      await refreshUsage();
+      await loadAuditLog();
+    } else {
+      showToast(r.error || "couldn't update quota", true);
+    }
+  });
+  wrap.querySelector(".cancel").addEventListener("click", () => cell.replaceChildren());
+}
+
+function showResetConfirm(userId) {
+  const cell = findConfirmCell(userId);
+  if (!cell) return;
+  cell.replaceChildren();
+  const wrap = document.createElement("div");
+  wrap.className = "row-confirm";
+  wrap.innerHTML = `
+    <span class="confirm-msg">zero out today's usage for this user?</span>
+    <button class="action-btn confirm">yes</button>
+    <button class="action-btn cancel">no</button>
+  `;
+  cell.appendChild(wrap);
+  wrap.querySelector(".confirm").addEventListener("click", async () => {
+    const r = await adminFetch("/api/admin/quota", {
+      method: "POST",
+      body: JSON.stringify({ userId, action: "reset" }),
+    });
+    if (r.ok) {
+      showToast("usage reset.");
+      cell.replaceChildren();
+      await refreshUsage();
+      await loadAuditLog();
+    } else {
+      showToast(r.error || "couldn't reset usage", true);
+    }
+  });
+  wrap.querySelector(".cancel").addEventListener("click", () => cell.replaceChildren());
+}
+
+async function refreshUsage() {
+  const r = await adminFetch("/api/admin/usage");
+  if (r.ok) renderUsage(r.data);
+}
+
+// ---------- Section 3a + 3b + 3c (config) ----------
+let configState = null;
+
+async function loadConfig() {
+  const r = await adminFetch("/api/admin/config");
+  if (!r.ok) {
+    showToast(r.error || "couldn't load config", true);
+    return;
+  }
+  configState = r.data;
+  renderModelRadios();
+  renderTonePromptCards();
+  renderGuards();
+}
+
+function renderModelRadios() {
+  const radios = document.querySelectorAll('#modelRadios input[type="radio"]');
+  radios.forEach((r) => {
+    r.checked = r.value === configState.activeModel;
+    r.parentElement.classList.toggle("active", r.checked);
+  });
+  $("saveModelBtn").disabled = true;
+}
+document.querySelectorAll('#modelRadios input[type="radio"]').forEach((r) => {
+  r.addEventListener("change", () => {
+    document.querySelectorAll('#modelRadios .model-radio').forEach((l) => l.classList.remove("active"));
+    r.parentElement.classList.add("active");
+    $("saveModelBtn").disabled = (r.value === configState?.activeModel);
+  });
+});
+$("saveModelBtn").addEventListener("click", async () => {
+  const checked = document.querySelector('#modelRadios input[type="radio"]:checked');
+  if (!checked) return;
+  if ($("saveModelBtn").classList.contains("confirm")) {
+    // second click — execute
+    const r = await adminFetch("/api/admin/config", {
+      method: "POST",
+      body: JSON.stringify({ activeModel: checked.value }),
+    });
+    if (r.ok) {
+      configState = r.data;
+      renderModelRadios();
+      showToast(`model: ${checked.value}`);
+      $("statModel").textContent = checked.value;
+      $("saveModelBtn").classList.remove("confirm");
+      $("saveModelBtn").textContent = "save";
+      await loadAuditLog();
+    } else {
+      showToast(r.error || "couldn't save", true);
+    }
+    return;
+  }
+  $("saveModelBtn").classList.add("confirm");
+  $("saveModelBtn").textContent = "click again to confirm";
+  setTimeout(() => {
+    $("saveModelBtn").classList.remove("confirm");
+    $("saveModelBtn").textContent = "save";
+  }, 4000);
+});
+
+const PERSONA_NAMES = { gentle: "anjali mehrotra", honest: "vikram reddy", brutal: "marcus chen" };
+
+function renderTonePromptCards() {
+  const container = $("tonePromptCards");
+  container.replaceChildren();
+  for (const tone of ["gentle", "honest", "brutal"]) {
+    const t = configState.tonePrompts[tone];
+    const card = document.createElement("div");
+    card.className = "tone-card";
+    card.dataset.tone = tone;
+    card.innerHTML = `
+      <div class="tone-card-head">
+        <p class="tone-card-name">${PERSONA_NAMES[tone]} · <span class="muted-faint" style="font-weight: 400;">${tone}</span></p>
+        <p class="tone-card-meta">v${t.version} · source: <span class="source-${t.source}">${t.source}</span></p>
+      </div>
+      <textarea class="tone-textarea" data-tone="${tone}"></textarea>
+      <div class="tone-actions">
+        <button class="save-btn save-tone" disabled>save changes</button>
+        <button class="secondary-btn revert-tone" ${t.source === 'file' ? 'disabled' : ''}>revert to file</button>
+      </div>
+      <div class="tone-confirm" data-confirm="${tone}"></div>
+    `;
+    const ta = card.querySelector("textarea");
+    ta.value = t.content;
+    ta.dataset.original = t.content;
+    ta.addEventListener("input", () => {
+      card.querySelector(".save-tone").disabled = (ta.value === ta.dataset.original);
+    });
+    card.querySelector(".save-tone").addEventListener("click", () => onSaveToneClick(tone));
+    card.querySelector(".revert-tone").addEventListener("click", () => onRevertToneClick(tone));
+    container.appendChild(card);
+  }
+  renderToneChangelog();
+}
+
+function onSaveToneClick(tone) {
+  const card = document.querySelector(`.tone-card[data-tone="${tone}"]`);
+  const ta = card.querySelector("textarea");
+  const confirm = card.querySelector(".tone-confirm");
+  if (ta.value === ta.dataset.original) return;
+  confirm.classList.add("show");
+  confirm.innerHTML = `
+    this overrides the file. continue?
+    <div class="tone-confirm-row">
+      <button class="action-btn confirm">yes, save</button>
+      <button class="action-btn cancel">cancel</button>
+    </div>
+  `;
+  confirm.querySelector(".confirm").addEventListener("click", async () => {
+    const r = await adminFetch("/api/admin/config", {
+      method: "POST",
+      body: JSON.stringify({ tonePrompts: { [tone]: ta.value } }),
+    });
+    if (r.ok) {
+      configState = r.data;
+      renderTonePromptCards();
+      showToast(`${tone} tone prompt saved.`);
+      await loadAuditLog();
+    } else {
+      showToast(r.error || "couldn't save", true);
+    }
+  });
+  confirm.querySelector(".cancel").addEventListener("click", () => confirm.classList.remove("show"));
+}
+
+function onRevertToneClick(tone) {
+  const card = document.querySelector(`.tone-card[data-tone="${tone}"]`);
+  const confirm = card.querySelector(".tone-confirm");
+  confirm.classList.add("show");
+  confirm.innerHTML = `
+    revert to the version in docs/product/TONE_PROMPTS.md? the redis override will be deleted.
+    <div class="tone-confirm-row">
+      <button class="action-btn confirm">yes, revert</button>
+      <button class="action-btn cancel">cancel</button>
+    </div>
+  `;
+  confirm.querySelector(".confirm").addEventListener("click", async () => {
+    const r = await adminFetch("/api/admin/config", {
+      method: "POST",
+      body: JSON.stringify({ tonePrompts: { [tone]: null } }),
+    });
+    if (r.ok) {
+      configState = r.data;
+      renderTonePromptCards();
+      showToast(`${tone} tone prompt reverted to file.`);
+      await loadAuditLog();
+    } else {
+      showToast(r.error || "couldn't revert", true);
+    }
+  });
+  confirm.querySelector(".cancel").addEventListener("click", () => confirm.classList.remove("show"));
+}
+
+function renderGuards() {
+  document.querySelectorAll('.toggle[data-guard]').forEach((t) => {
+    const g = t.dataset.guard;
+    const v = configState.guards[g] || "on";
+    t.dataset.on = (v === "on") ? "true" : "false";
+  });
+}
+document.querySelectorAll('.toggle[data-guard]').forEach((t) => {
+  t.addEventListener("click", async () => {
+    const g = t.dataset.guard;
+    if (!configState) return;
+    const newVal = configState.guards[g] === "on" ? "off" : "on";
+    t.disabled = true;
+    const r = await adminFetch("/api/admin/config", {
+      method: "POST",
+      body: JSON.stringify({ guards: { [g]: newVal } }),
+    });
+    t.disabled = false;
+    if (r.ok) {
+      configState = r.data;
+      renderGuards();
+      showToast(`${g} guard: ${newVal}`);
+      await loadAuditLog();
+    } else {
+      showToast(r.error || "couldn't toggle", true);
+    }
+  });
+});
+
+// ---------- Demo mode (Phase 4.5) ----------
+let demoState = null;
+
+async function loadDemoMode() {
+  const r = await adminFetch("/api/admin/demo-mode");
+  if (!r.ok) return;
+  demoState = r.data;
+  renderDemoMode();
+}
+
+function renderDemoMode() {
+  const t = $("demoModeToggle");
+  t.dataset.on = demoState?.enabled ? "true" : "false";
+  $("demoFailureCount").textContent = String(demoState?.recentFailures ?? 0);
+}
+
+$("demoModeToggle").addEventListener("click", async () => {
+  if (!demoState) return;
+  const next = !demoState.enabled;
+  $("demoModeToggle").disabled = true;
+  const r = await adminFetch("/api/admin/demo-mode", {
+    method: "POST",
+    body: JSON.stringify({ enabled: next }),
+  });
+  $("demoModeToggle").disabled = false;
+  if (r.ok) {
+    demoState = r.data;
+    renderDemoMode();
+    showToast(`demo mode ${next ? "on" : "off"}`);
+    await loadAuditLog();
+  } else {
+    showToast(r.error || "couldn't toggle demo mode", true);
+  }
+});
+
+// ---------- Section 4 + tone changelog ----------
+let auditEntries = [];
+
+async function loadAuditLog() {
+  const r = await adminFetch("/api/admin/log");
+  if (!r.ok) return;
+  auditEntries = r.data.entries || [];
+  renderAuditLog();
+  renderToneChangelog();
+}
+
+function fmtTs(iso) {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return new Intl.DateTimeFormat(undefined, {
+      year: "numeric", month: "short", day: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    }).format(d).toLowerCase();
+  } catch { return iso.slice(0, 16); }
+}
+
+// Audit #043 / F4 — return a DocumentFragment instead of an HTML string. Every
+// admin-supplied field flows in via textContent; only the static <strong>
+// emphasis tags use createElement. Defense-in-depth: nothing reaches innerHTML.
+function describeAction(entry) {
+  const a = entry.action;
+  const f = entry.fields || {};
+  const frag = document.createDocumentFragment();
+  const t = (s) => frag.appendChild(document.createTextNode(s));
+  const b = (s) => {
+    const el = document.createElement("strong");
+    el.textContent = s;
+    frag.appendChild(el);
+  };
+
+  if (!entry.allowed) {
+    t("denied access to "); b(a); t(` (${f.reason || "forbidden"})`);
+    return frag;
+  }
+  if (a === "model_changed") {
+    t("switched model from "); b(f.from); t(" to "); b(f.to);
+  } else if (a === "tone_prompt_edited") {
+    t("edited "); b(f.tone); t(" tone prompt");
+  } else if (a === "tone_prompt_reverted") {
+    t("reverted "); b(f.tone); t(" tone prompt to file");
+  } else if (a === "guard_toggled") {
+    t("toggled "); b(f.guard); t(` guard: ${f.from} → ${f.to}`);
+  } else if (a === "demo_mode_toggled") {
+    t("demo mode: "); b(f.from); t(" → "); b(f.to);
+  } else if (a === "quota_set") {
+    t(`set quota for user ${shortId(f.targetUserId)} to `);
+    b((f.value || 0).toLocaleString());
+  } else if (a === "quota_reset") {
+    t(`reset usage for user ${shortId(f.targetUserId)}`);
+  } else {
+    t(a);
+  }
+  return frag;
+}
+
+// Helper for the audit-log + tone-changelog renders below — builds the
+// per-entry list item without ever touching innerHTML.
+function renderAuditEntry(e) {
+  const li = document.createElement("li");
+  li.className = e.allowed ? "" : "denied";
+  const ts = document.createElement("span");
+  ts.className = "ts"; ts.textContent = fmtTs(e.ts);
+  const who = document.createElement("span");
+  who.className = "who"; who.textContent = e.email || shortId(e.userId);
+  const what = document.createElement("span");
+  what.className = "what"; what.appendChild(describeAction(e));
+  li.append(ts, document.createTextNode(" "), who, document.createTextNode(" "), what);
+  return li;
+}
+
+function shortId(id) {
+  if (!id) return "—";
+  if (id.length <= 16) return id;
+  return id.slice(0, 8) + "…";
+}
+
+function renderAuditLog() {
+  const list = $("auditLog");
+  list.replaceChildren();
+  if (!auditEntries.length) {
+    const li = document.createElement("li");
+    li.className = "muted italic";
+    li.textContent = "no admin actions yet.";
+    list.appendChild(li);
+    return;
+  }
+  for (const e of auditEntries) list.appendChild(renderAuditEntry(e));
+}
+
+function renderToneChangelog() {
+  const list = $("toneChangelog");
+  list.replaceChildren();
+  const filtered = auditEntries.filter((e) => e.allowed && (e.action === "tone_prompt_edited" || e.action === "tone_prompt_reverted")).slice(0, 5);
+  if (!filtered.length) {
+    const li = document.createElement("li");
+    li.className = "muted italic";
+    li.textContent = "no tone-prompt edits yet.";
+    list.appendChild(li);
+    return;
+  }
+  for (const e of filtered) list.appendChild(renderAuditEntry(e));
+}
+
+// Boot
+initAuth().catch((err) => {
+  loadingState.hidden = true;
+  signInPrompt.hidden = false;
+  signInPrompt.querySelector(".signin-fineprint").textContent = "auth is having a moment. refresh in a sec?";
+  signInBtn.disabled = true;
+});
+</script>
+</body>
+</html>
